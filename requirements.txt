@@ -1,7 +1,0 @@
-#conda create -n env_clizard python=3.12
-#conda activate env_clizard
-
-tqdm
-matplotlib
-requests
-datazets

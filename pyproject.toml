@@ -6,7 +6,7 @@ build-backend = "setuptools.build_meta"
 name = "clizard"
 dynamic = ["version"]
 authors = [{ name = "Erdogan Taskesen", email = "erdogant@gmail.com" },]
-description = "clizard is a Python library for ..."
+description = "clizard is a Python library for Reusable rich-based interactive CLI framework"
 readme = "README.md"
 requires-python = ">=3"
 license = "MIT"
@@ -23,23 +23,21 @@ classifiers = [
 ]
 dependencies = [
     'numpy',
-    'matplotlib',
-    'tqdm',
-    'datazets',
+    "rich>=13.0"
 ]
 
 [project.urls]
 Homepage = "https://erdogant.github.io/clizard"
 Download = "https://github.com/erdogant/clizard/archive/{version}.tar.gz"
 
-#[tool.setuptools]
-#packages = ["clizard"]
-# Add the entire directory with subdirs into the package
-[tool.setuptools.packages.find]
-include = ["clizard*"]
+[project.scripts]
+clizard = "clizard.__main__:main"
 
 [tool.setuptools]
 include-package-data = true
+
+[tool.setuptools.packages.find]
+include = ["clizard*"]
 
 [tool.setuptools.dynamic]
 version = { attr = "clizard.__version__" }
