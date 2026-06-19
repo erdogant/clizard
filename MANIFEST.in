@@ -1,0 +1,2 @@
+#include REPONAME/data/*.zip
+#include REPONAME/data/*.txt

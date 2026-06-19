@@ -1,0 +1,45 @@
+[build-system]
+requires = ["setuptools", "wheel"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "clizard"
+dynamic = ["version"]
+authors = [{ name = "Erdogan Taskesen", email = "erdogant@gmail.com" },]
+description = "clizard is a Python library for ..."
+readme = "README.md"
+requires-python = ">=3"
+license = "MIT"
+keywords = ["Python", "clizard", "Machine Learning", "AI", ""]
+classifiers = [
+    "Programming Language :: Python :: 3",
+    "Intended Audience :: Education",
+    "Intended Audience :: Science/Research",
+    "Operating System :: Unix",
+    "Operating System :: Microsoft :: Windows",
+    "Operating System :: MacOS",
+    "Operating System :: OS Independent",
+    "Topic :: Scientific/Engineering :: Artificial Intelligence",
+]
+dependencies = [
+    'numpy',
+    'matplotlib',
+    'tqdm',
+    'datazets',
+]
+
+[project.urls]
+Homepage = "https://erdogant.github.io/clizard"
+Download = "https://github.com/erdogant/clizard/archive/{version}.tar.gz"
+
+#[tool.setuptools]
+#packages = ["clizard"]
+# Add the entire directory with subdirs into the package
+[tool.setuptools.packages.find]
+include = ["clizard*"]
+
+[tool.setuptools]
+include-package-data = true
+
+[tool.setuptools.dynamic]
+version = { attr = "clizard.__version__" }
