@@ -23,6 +23,7 @@ def get_project_info(repo_path="."):
         info["name"] = project.get("name")
         info["version"] = project.get("version")
         info["requirements"] = project.get("dependencies", [])
+        info["description"] = project.get("description", "")
 
         urls = project.get("urls", {})
         for key in ("Documentation", "documentation", "Docs", "docs"):

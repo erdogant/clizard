@@ -13,6 +13,8 @@ from rich.table import Table
 from rich.text import Text
 
 from .config import Config
+from .project_info import get_project_info
+
 
 console = Console()
 
@@ -54,7 +56,7 @@ class GenericCLI:
         self.tips = tips or ["/help", "/settings"]
         self.updates = updates or ["Initial release"]
 
-        defaults = {"model": "default-model", "path": "."}
+        defaults = {}
         if settings:
             defaults.update(settings)
         self.config = Config(app_name, defaults=defaults, config_path=config_path)
@@ -255,14 +257,16 @@ class GenericCLI:
 
     # ---------- rendering ----------
     def welcome(self):
+        repo_info = get_project_info()
+
         console.print()
-        header_text = Text()
-        header_text.append(f" {self.app_name} \n", style=f"bold {self.ACCENT} reverse")
-        header_text.append(self.ascii_art, style=self.ACCENT)
-        header_text.append(f"\nmodel: ", style=f"dim {self.DIM}")
-        header_text.append(f"{self.config.get('model')}\n", style="italic")
-        header_text.append(f"path:  ", style=f"dim {self.DIM}")
-        header_text.append(f"{self.config.get('path')}\n", style="dim")
+        # Build a centered Text block for the header so all fragments are centered.
+        header_text = Text(justify="center")
+        header_text.append(f"{self.app_name}\n", style=f"bold {self.ACCENT} reverse")
+        # Ensure ascii art is on its own centered block
+        header_text.append(f"\n{self.ascii_art}\n", style=self.ACCENT)
+        if repo_info.get('description'):
+            header_text.append(f"\n{repo_info['description']}")
 
         centered_header = Align.center(header_text, vertical="middle")
 

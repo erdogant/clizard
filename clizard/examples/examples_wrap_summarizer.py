@@ -22,7 +22,7 @@ def build_cli(args):
             "max_words": args.max_words,
             "uppercase": args.uppercase,
         },
-        tips=["/run", "/settings", "/help"],
+        tips=["/run", "/settings", "/docs", "/help"],
     )
 
     # 2. A command that calls main() using whatever is currently in settings.

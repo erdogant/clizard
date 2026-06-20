@@ -29,6 +29,7 @@ def load_clizard_file(repo_path="."):
 
 
 def save_clizard_file(data: dict, repo_path="."):
+
     path = Path(repo_path) / CLIZARD_FILENAME
     with open(path, "w") as f:
         json.dump(data, f, indent=2)
@@ -46,7 +47,7 @@ def ensure_clizard_file(repo_path=".", **overrides):
         "ascii_art": DEFAULT_ASCII,
         "docs_url": None,       # None -> auto from pyproject, else docs/index.html
         "accent_color": "#d97757",
-        "tips": ["/wizard", "/run", "/settings", "/help"],
+        "tips": ["/wizard", "/run", "/settings", "/docs", "/help"],
         "updates": [],
     }
     data.update(overrides)

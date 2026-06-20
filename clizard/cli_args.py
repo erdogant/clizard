@@ -80,7 +80,7 @@ def auto_cli(parser, args=None, app_name=None, handler=None, run_callback=None, 
         settings=settings,
         config_path=config_path,
         handler=handler,
-        tips=["/run", "/settings", "/help"] if run_callback else ["/settings", "/help"],
+        tips=["/run", "/settings", "/docs", "/help"] if run_callback else ["/settings", "/help"],
     )
     cli.arg_meta = arg_meta  # exposed for validation / display in /settings
 
@@ -93,4 +93,3 @@ def auto_cli(parser, args=None, app_name=None, handler=None, run_callback=None, 
                 cli.assistant_message(str(result))
 
     return cli
-
