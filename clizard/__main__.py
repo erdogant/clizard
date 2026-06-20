@@ -42,18 +42,14 @@ def build_cli(repo_path="."):
     sm_settings = settings_from_snakemake_config(sm_config_path) if sm_config_path else {}
 
     settings = {
-        # "path": repo_path,
-        # "github_user": git_info.get("github_user") or "",
-        # "github_repo": git_info.get("github_repo") or "",
-        # "remote_url": git_info.get("remote_url") or "",
-        # "default_branch": git_info.get("default_branch") or "main",
+        "path": repo_path,
         "docs_url": docs_url or "",
         **main_settings,
         **sm_settings,
     }
 
     has_run_target = main_func is not None or sm_config_path is not None
-    default_tips = ["/wizard", "/run", "/settings", "/docs", "/help"] if has_run_target else ["/settings", "/help"]
+    default_tips = ["/wizard", "/run", "/settings", "/help"] if has_run_target else ["/settings", "/help"]
 
     cli = GenericCLI(
         app_name=app_name,
@@ -130,8 +126,8 @@ def build_cli(repo_path="."):
 def main():
     args = parse_args(app_name="clizard")
     cli = build_cli(repo_path=args.path or ".")
-    # if args.model:
-    #     cli.config.set("model", args.model)
+    if args.model:
+        cli.config.set("model", args.model)
     cli.run()
 
 
