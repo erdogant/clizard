@@ -5,45 +5,82 @@ particular way.
 import importlib.util
 import inspect
 import sys
+import re
 from pathlib import Path
 from .git_info import get_git_info
 
 
 """Locate the most likely entry-point .py file in a repo."""
 def _find_entry_file(repo_path="."):
-    CANDIDATE_FILENAMES = ["__main__.py", "main.py"]
     repo_path = Path(repo_path)
     repo_name = repo_path.name
-    CANDIDATE_FILENAMES.append(repo_name + '.py')
 
-    # Get .git info when present
+    CANDIDATE_FILENAMES = [
+        "__main__.py",
+        "main.py",
+        f"{repo_name}.py",
+    ]
+
+    # Add GitHub repo name if available
     gitinfo = get_git_info()
-    if gitinfo.get('github_repo'):
-        repo_name = gitinfo['github_repo']
-        CANDIDATE_FILENAMES.append(repo_name + '.py')
-        CANDIDATE_FILENAMES = list(set(CANDIDATE_FILENAMES))
+    if gitinfo.get("github_repo"):
+        CANDIDATE_FILENAMES.append(f"{gitinfo['github_repo']}.py")
 
-# 1. top-level / package __main__.py or main.py
+    CANDIDATE_FILENAMES = list(dict.fromkeys(CANDIDATE_FILENAMES))
+
+    # --- 1. Direct top-level candidates ---
     for name in CANDIDATE_FILENAMES:
+        # subfolder match
         for candidate in repo_path.glob(f"*/{name}"):
             return candidate
+
+        # direct match
         direct = repo_path / name
         if direct.exists():
             return direct
 
-    # 2. fallback: any .py file with `if __name__ == "__main__"` and a main()
+    # --- 2. Find file that actually handles arguments ---
+    ARG_PATTERNS = [
+        r"sys\.argv",
+        r"argparse",
+        r"ArgumentParser",
+        r"click\.command",
+        r"typer\.run",
+    ]
+
+    MAIN_PATTERN = r"def\s+main\s*\("
+
     for py_file in repo_path.rglob("*.py"):
         if ".git" in py_file.parts or "site-packages" in py_file.parts:
             continue
+
         try:
             text = py_file.read_text(errors="ignore")
         except OSError:
             continue
+
+        # must define main()
+        if not re.search(MAIN_PATTERN, text):
+            continue
+
+        # must reference arguments
+        if any(re.search(p, text) for p in ARG_PATTERNS):
+            return py_file
+
+    # --- 3. Fallback: any file with main() and __name__ check ---
+    for py_file in repo_path.rglob("*.py"):
+        if ".git" in py_file.parts or "site-packages" in py_file.parts:
+            continue
+
+        try:
+            text = py_file.read_text(errors="ignore")
+        except OSError:
+            continue
+
         if "__name__" in text and "def main(" in text:
             return py_file
 
     return None
-
 
 def _load_module(py_file: Path):
     """Load py_file as a module, preserving package context so that any
