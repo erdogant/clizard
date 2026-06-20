@@ -3,7 +3,7 @@ Coding quality
 '''''''''''''''''''''
 
 I value software quality. Higher quality software has fewer defects, better security, and better performance, which leads to happier users who can work more effectively.
-Code reviews are an effective method for improving software quality. McConnell (2004) suggests that unit testing finds approximately 25% of defects, function testing 35%, integration testing 45%, and code review 55-60%. 
+Code reviews are an effective method for improving software quality. McConnell (2004) suggests that unit testing finds approximately 25% of defects, function testing 35%, integration testing 45%, and code review 55-60%.
 While this means that none of these methods are good enough on their own and that they should be combined, clearly code review is an essential tool here.
 
 This library is therefore developed with several techniques, such as coding styling, low complexity, docstrings, reviews, and unit tests.
@@ -34,7 +34,7 @@ The file structure of the generated package looks like:
     ├── clizard
     │   ├── __init__.py
     │   ├── __version__.py
-    │   └── clizard.py
+    │   └── clizard_main.py
     ├── README.md
     ├── requirements.txt
     ├── setup.cfg
@@ -50,7 +50,7 @@ Style
 This library is compliant with the PEP-8 standards.
 PEP stands for Python Enhancement Proposal and sets a baseline for the readability of Python code.
 Each public function contains a docstring that is based on numpy standards.
-    
+
 
 Complexity
 ----------
@@ -83,12 +83,10 @@ The following tests are secured using :func:`tests.test_clizard`:
     ====================================== test session starts ======================================
     platform win32 -- Python 3.6.10, pytest-5.4.0, py-1.8.1, pluggy-0.13.1
     collected 3 items
-    
+
     tests\test_clizard.py ...                                                                [100%]
-    
+
     ======================================= warnings summary ========================================
     tests/test_clizard.py::test_plot
-    
-    =========================== 3 passed, 1 warning in 1254.97s (0:20:54) ===========================    
 
-
+    =========================== 3 passed, 1 warning in 1254.97s (0:20:54) ===========================

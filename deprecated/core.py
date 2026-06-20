@@ -1,6 +1,5 @@
 """Generic Claude-style rich CLI, reusable across projects."""
 import time
-import sys
 from rich import box
 from rich.align import Align
 from rich.console import Console, Group
@@ -74,14 +73,12 @@ class GenericCLI:
         self._commands[name] = (fn, help_text)
 
     def _register_builtins(self):
+        self.register_command("/wizard", self._cmd_wizard, "Step through all settings, then optionally /run")
         self.register_command("/help", self._cmd_help, "Show available commands")
         self.register_command("/clear", self._cmd_clear, "Clear the terminal")
         self.register_command("/settings", self._cmd_settings, "View or edit settings")
         self.register_command("/exit", self._cmd_exit, "Exit the session")
         self.register_command("/quit", self._cmd_exit, "Exit the session")
-        self.register_command("/install", self._cmd_install, "Install project requirements")
-        self.register_command("/docs", self._cmd_docs, "Open the project documentation")
-        self.register_command("/wizard", self._cmd_wizard, "Step through all settings, then optionally /run")
 
     def _cmd_help(self, prompt):
         lines = "\n".join(f"* `{name}` - {desc}" for name, (_, desc) in sorted(self._commands.items()))
@@ -191,54 +188,6 @@ class GenericCLI:
                 self._commands["/run"][0]("/run")
         else:
             console.print("[dim]No /run command registered.[/dim]")
-
-    def _cmd_install(self, prompt):
-        import subprocess
-        from pathlib import Path
-
-        repo_path = Path(self.config.get("path", "."))
-        pyproject = repo_path / "pyproject.toml"
-        requirements = repo_path / "requirements.txt"
-
-        if pyproject.exists():
-            cmd = [sys.executable, "-m", "pip", "install", "-e", str(repo_path)]
-        elif requirements.exists():
-            cmd = [sys.executable, "-m", "pip", "install", "-r", str(requirements)]
-        else:
-            self.error("No pyproject.toml or requirements.txt found.")
-            return
-
-        console.print(f"[dim]$ {' '.join(cmd)}[/dim]")
-        self.status("Installing...")
-        try:
-            result = subprocess.run(cmd, capture_output=True, text=True)
-        except Exception as e:
-            self.error(str(e))
-            return
-
-        if result.returncode == 0:
-            self.assistant_message("Install completed successfully.")
-        else:
-            self.error(result.stderr.strip()[-1000:] or "Install failed.")
-
-    def _cmd_docs(self, prompt):
-        import webbrowser
-        from pathlib import Path
-
-        docs_url = self.config.get("docs_url")
-        repo_path = Path(self.config.get("path", "."))
-        local_docs = repo_path / "docs" / "index.html"
-
-        if local_docs.exists():
-            target = local_docs.resolve().as_uri()
-        elif docs_url:
-            target = docs_url
-        else:
-            self.error("No docs/index.html or docs_url configured.")
-            return
-
-        console.print(f"[dim]Opening {target}[/dim]")
-        webbrowser.open(target)
 
     def _show_settings_table(self):
         table = Table(

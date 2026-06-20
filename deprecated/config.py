@@ -1,5 +1,6 @@
 """Settings persistence for GenericCLI."""
 import json
+import os
 from pathlib import Path
 
 DEFAULT_CONFIG_DIR = Path.home() / ".config" / "clizard"
