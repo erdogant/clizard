@@ -46,6 +46,7 @@ class GenericCLI:
         handler=None,
         tips: list = None,
         updates: list = None,
+        hidden_settings=None,
     ):
         self.app_name = app_name
         self.ascii_art = ascii_art or DEFAULT_ASCII
@@ -55,6 +56,13 @@ class GenericCLI:
         self.handler = handler
         self.tips = tips or ["/help", "/settings"]
         self.updates = updates or ["Initial release"]
+        # Keys that exist in config (e.g. internal/derived values like git
+        # remote info or the model name) but shouldn't clutter /settings or
+        # the /wizard walkthrough. Still readable/writable via
+        # `/settings set <key> <value>` and `self.config.get/set`.
+        self.hidden_settings = set(hidden_settings) if hidden_settings else {
+            "github_user", "github_repo", "remote_url", "default_branch", "model",
+        }
 
         defaults = {}
         if settings:
@@ -136,7 +144,7 @@ class GenericCLI:
         if answer != "y":
             return
 
-        keys = list(self.config.settings.keys())
+        keys = [k for k in self.config.settings.keys() if k not in self.hidden_settings]
         key = Prompt.ask(f"  Which key? [{'/'.join(keys)}]")
         if key not in self.config.settings:
             self.error(f"Unknown key: {key}")
@@ -153,6 +161,8 @@ class GenericCLI:
         meta = getattr(self, "arg_meta", {}) or {}
 
         for key in list(self.config.settings.keys()):
+            if key in self.hidden_settings:
+                continue
             current = self.config.get(key)
             info = meta.get(key, {})
             help_text = info.get("help")
@@ -252,6 +262,8 @@ class GenericCLI:
         table.add_column("Parameter", style=self.ACCENT)
         table.add_column("Current Value")
         for k, v in self.config.settings.items():
+            if k in self.hidden_settings:
+                continue
             table.add_row(str(k), str(v))
         console.print(table)
 

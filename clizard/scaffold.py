@@ -130,27 +130,23 @@ def generate_clizard_main(repo_path=".", output_name="clizard_main.py"):
     entry_module = entry_file.stem  # "__main__" or "main"
     entry_dir = entry_file.parent.relative_to(repo_path) if entry_file.parent != repo_path else "."
 
-    # The sys.path insertion above is computed as Path(__file__).parent /
-    # entry_dir, where entry_dir is relative to repo_path -- so the
-    # generated file must actually live at repo_path for that math to
-    # resolve. Writing it anywhere else (e.g. inside the package
-    # containing main()) silently breaks the import.
-    if entry_file.parent.exists():
-        out_path = entry_file.parent / output_name
-    else:
-        out_path = repo_path / output_name
+    # Both clizard_main.py and .clizard always live at repo_path (the repo
+    # root), never inside the subdirectory/package containing main(). This
+    # matches the sys.path math below (Path(__file__).parent / entry_dir,
+    # with entry_dir relative to repo_path) and keeps a single, predictable
+    # location -- the same one `clizard` itself uses for .clizard.
+    out_path = repo_path / output_name
 
     # Persist the discovered settings/arg_meta/call_style into .clizard so
     # they're loaded at runtime by build_cli() above -- this also means
     # edits made via `/settings` (or by hand-editing .clizard) carry over
     # without needing to re-scaffold, and clizard_main.py can be regenerated
     # later without losing customizations made elsewhere in .clizard.
-    clz_dir = out_path.parent
-    clz = ensure_clizard_file(str(clz_dir))
+    clz = ensure_clizard_file(str(repo_path))
     clz["settings"] = settings
     clz["arg_meta"] = safe_arg_meta
     clz["call_style"] = call_style
-    save_clizard_file(clz, str(clz_dir))
+    save_clizard_file(clz, str(repo_path))
 
     # __main__.py can't be imported by stem name; use the package instead.
     if entry_module == "__main__":
@@ -165,16 +161,6 @@ def generate_clizard_main(repo_path=".", output_name="clizard_main.py"):
         arg_meta=safe_arg_meta,
         call_style=run_body_call_style,
     )
-
-    # The sys.path insertion above is computed as Path(__file__).parent /
-    # entry_dir, where entry_dir is relative to repo_path -- so the
-    # generated file must actually live at repo_path for that math to
-    # resolve. Writing it anywhere else (e.g. inside the package
-    # containing main()) silently breaks the import.
-    if entry_file.parent.exists():
-        out_path = entry_file.parent / output_name
-    else:
-        out_path = repo_path / output_name
 
     # Write file
     out_path.write_text(code)

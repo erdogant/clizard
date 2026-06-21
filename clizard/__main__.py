@@ -61,6 +61,17 @@ def build_cli(repo_path="."):
     )
     cli.arg_meta = arg_meta
 
+    # Config persists settings across runs (so a value the user explicitly
+    # set via /settings, e.g. username="test", survives between sessions).
+    # But that means a key first discovered with no default (None) stays
+    # None forever in the persisted store, even after main()'s source gains
+    # an explicit default later (e.g. clean=True, verbosity=3). Backfill: if
+    # the persisted value is still None, adopt the freshly discovered
+    # default instead of leaving it stuck.
+    for key, val in {**main_settings, **sm_settings}.items():
+        if cli.config.get(key) is None and val is not None:
+            cli.config.set(key, val)
+
     # Only show /run if there's actually something to run.
     if not has_run_target:
         cli._commands.pop("/run", None)
