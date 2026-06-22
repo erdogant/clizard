@@ -1,0 +1,20 @@
+{
+    "source_dir": ".",
+    "output_dir": "D:\\REPOS\\clizard\\docs\\source",
+    "pypi_name": "clizard",
+    "github_user": "erdogant",
+    "github_repo": "clizard",
+    "remote_url": "https://github.com/erdogant/clizard.git",
+    "default_branch": "main",
+    "page": null,
+    "pages_file": null,
+    "max_iterations": 2,
+    "endpoint": "http://localhost:1234/v1/chat/completions",
+    "orchestrator_model": "openai/gpt-oss-20b",
+    "analyst_model": "qwen3.6-35b-a3b-uncensored-hauhaucs-aggressive",
+    "writer_model": "openai/gpt-oss-20b",
+    "reviewer_model": "microsoft/phi-4",
+    "discover_model": "zai-org/glm-4.6v-flash",
+    "reuse_existing_rst": false,
+    "optional_keywords": {}
+}

@@ -1,0 +1,7 @@
+[
+  {
+    "type": "header",
+    "name": null,
+    "code": "from .core import GenericCLI\nfrom .config import Config\nfrom .cli_args import parse_args, build_parser, auto_cli\n\n__all__ = [\"GenericCLI\", \"Config\", \"parse_args\", \"build_parser\", \"auto_cli\"]\n__version__ = \"0.1.0\""
+  }
+]

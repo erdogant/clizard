@@ -1,0 +1,106 @@
+{
+  "Installation": {
+    "page_title": "Installation",
+    "description": "Installation page for 'clizard'. GitHub user name: erdogant. GitHub repo: https://github.com/erdogant/clizard.git. Default branch: main. Latest tag/release: 0.1.0. Cover: conda env creation, pip install (pip install clizard), GitHub install (pip install git+{gh_url}), optional dependency table extracted from imports, and uninstall steps.",
+    "sources": [
+      "__init__.py",
+      "requirements-dev.txt",
+      "requirements.txt",
+      "pyproject.toml"
+    ],
+    "existing_rst": "Installation.rst"
+  },
+  "Summary": {
+    "page_title": "Summary",
+    "description": "High-level background page. Describe what the library does, its goals, and a schematic overview of the end-to-end workflow. Synthesise from: all already-written .rst files in the output directory, plus the following class descriptions extracted from source docstrings:\nbuild_parser: Create an argparse.ArgumentParser with common options.\nauto_cli: Build a GenericCLI automatically from an existing argparse.ArgumentParser.\nload_clizard_file: Return the parsed .clizard JSON dict, or {} if absent/invalid.\nensure_clizard_file: Return .clizard data, merged with sane defaults if absent.\nConfig: Simple JSON-backed settings store.\nupdate_from_args: Override settings with non-None values from parsed CLI args.\nGenericCLI: Reusable rich-based chat CLI.\ncommand: Decorator: register a slash-command. fn(self, prompt) -> None.\n_cast_value: Cast a string CLI value to match the type of the existing setting.\nhandle: Default handler if none supplied; override or pass `handler=`.\n_load_module: Load py_file as a module, preserving package context so that any\nfind_main: Return (module, main_func, file_path) or (None, None, None).\n_extract_argparse_settings: Many main()s take *no* parameters and instead build their own\nsettings_from_main: Inspect main()'s signature -> (settings dict, arg_meta dict, call_style).\nfind_snakemake_config: Locate a Snakemake config YAML: explicit `configfile:` in the\nsettings_from_snakemake_config: Load a Snakemake config YAML -> flat settings dict (keys prefixed\nwrite_snakemake_config: Write back sm_-prefixed settings into the Snakemake config YAML.\nrun: Your existing function, unchanged.\nmain: Pretend this does real work (e.g. summarization).\n_parse_remote_url: Return (host, user, repo) from a git remote URL (ssh or https).",
+    "sources": [
+      "__init__.py",
+      "__main__.py",
+      "cli_args.py",
+      "clizard_file.py",
+      "config.py",
+      "core.py",
+      "discover.py",
+      "examples_auto_cli_release_tool.py",
+      "examples_llmlight_app.py",
+      "examples_summarizer.py",
+      "examples_wrap_summarizer.py",
+      "git_info.py",
+      "project_info.py",
+      "scaffold.py",
+      "__init__.py",
+      "__main__.py",
+      "cli_args.py",
+      "clizard_file.py",
+      "config.py",
+      "core.py"
+    ],
+    "existing_rst": "Summary.rst"
+  },
+  "Algorithm": {
+    "page_title": "Algorithm",
+    "description": "Technical workflow page. Describe the step-by-step algorithm and core functions: data ingestion, chunking, embedding, storage, retrieval, and inference. Include a schematic ASCII workflow diagram showing how components connect. Draw on these parameter/notes sections from the source docstrings:\n[auto_cli] Parameters:\nparser : argparse.ArgumentParser\n    An already-configured parser (e.g. the one built in your existing\n    `main()`), or just `parser` before calling `parse_args()` on it.\nargs : argparse.Namespace, optional\n    Pre-parsed args. If omitted, `parser.parse_args()` is called.\napp_name : str, optional\n    Defaults to `parser.prog`.\nhandler : callable(prompt, cli) -> str, optional\n    Called for free-text input. If omitted, free-text input does nothing\n    special; use `run_callback` + a `/run` command instead (see below).\nrun_callback : callable(cli) -> str, optional\n    If given, a `/run` command is registered that calls\n    `run_callback(cli)` using the current settings, mirroring how you'd\n    call your script's `run(...)` function with `args.*`.\nconfig_path : str, optional\n    Where to persist settings between sessions.",
+    "sources": [
+      "__init__.py",
+      "__main__.py",
+      "cli_args.py",
+      "clizard_file.py",
+      "config.py",
+      "core.py",
+      "discover.py",
+      "examples_auto_cli_release_tool.py",
+      "examples_llmlight_app.py",
+      "examples_summarizer.py",
+      "examples_wrap_summarizer.py",
+      "git_info.py",
+      "project_info.py",
+      "scaffold.py",
+      "__init__.py",
+      "__main__.py",
+      "cli_args.py",
+      "clizard_file.py",
+      "config.py",
+      "core.py"
+    ],
+    "existing_rst": "Algorithm.rst"
+  },
+  "Examples": {
+    "page_title": "Examples",
+    "description": "Practical examples page. Show the most common user workflows as runnable code blocks. Use the following examples extracted from docstrings and example files (ranked by API usage frequency):\n\ndef main():\n    parser = argparse.ArgumentParser()\n    parser.add_argument(\"-u\", \"--username\", type=str, help=\"Username on Github/Gitlab..\")\n    parser.add_argument(\"-p\", \"--package\", type=str, help=\"Package name to be released.\")\n    parser.add_argument(\"-c\", \"--clean\", type=int, choices=[0, 1], help=\"Remove local builds: [dist], [build] and [x.egg-info].\")\n    parser.add_argument(\"-i\", \"--install\", type=int, choices=[0, 1], help=\"Install this versions on local machine.\")\n    parser.add_argument(\"-t\", \"--twine\", type=str, help=\"Path to twine in case you have a custom build.\")\n    parser.add_argument(\"-v\", \"--verbosity\", type=int, choices=[0, 1, 2, 3, 4, 5], help=\"Verbosity, higher number tends to more information.\")\n    args = parser.parse_args()\n\n    # Instead of calling run(...) directly, build a CLI around it:\n    def run_callback(cli):\n        s = cli.config.settings\n        run(s[\"username\"], s[\"package\"], clean=s[\"clean\"], install=s[\"install\"], twine=s[\"twine\"], verbose=s[\"verbosity\"])\n\n    cli = auto_cli(parser, args=args, app_name=\"ReleaseTool\", run_callback=run_callback)\n    cli.run()\n\n---\n\ndef build_cli(args):\n    cli = GenericCLI(\n        app_name=\"Summarizer CLI\",\n        settings={\n            \"input_path\": args.input_path,\n            \"max_words\": args.max_words,\n            \"uppercase\": args.uppercase,\n        },\n        tips=[\"/run\", \"/settings\", \"/docs\", \"/help\"],\n    )\n\n    # 2. A command that calls main() using whatever is currently in settings.\n    @cli.command(\"/run\", \"Run the summarizer with current settings\")\n    def cmd_run(prompt):\n        path = cli.config.get(\"input_path\")\n        if not path:\n            cli.error(\"No input_path set. Use: /settings set input_path <file>\")\n            return\n        cli.status(f\"Summarizing {path}...\")\n        result = summarize(\n            input_path=path,\n            max_words=cli.config.get(\"max_words\"),\n            uppercase=cli.config.get(\"uppercase\"),\n        )\n        cli.assistant_message(result)\n\n    # 3. Optional: also let free-text input trigger main() directly,\n    #    treating the typed text as the input_path.\n    def handler(prompt, cli):\n        return summarize(\n            input_path=prompt,\n            max_words=cli.config.get(\"max_words\"),\n            uppercase=cli.config.get(\"uppercase\"),\n        )\n\n    cli.handler = handler\n    return cli\n\n---\n\ndef main():\n    args = parse_args(app_name=\"LLMlight\", extra_args=EXTRA_ARGS)\n\n    cli = GenericCLI(\n        app_name=args.name or \"LLMlight\",\n        ascii_art=r\"\"\"\n   /\\_/\\\n  ( o.o )\n   > ^ <\n\"\"\",\n        settings={\"model\": \"google/gemma-26B-a4B\", \"path\": \"C:/LLMlight\", \"temperature\": 0.7},\n        config_path=args.config,\n        handler=my_handler,\n        tips=[\"/init\", \"/help\", \"generate documentation\"],\n        updates=[\"Agent system improvements\", \"Documentation generation\", \"Local model support\"],\n    )\n    cli.config.update_from_args({\"model\": args.model, \"path\": args.path, \"temperature\": args.temperature})\n\n    # custom command specific to this project\n    @cli.command(\"/init\", \"Initialize a new project\")\n    def cmd_init(prompt):\n        cli.assistant_message(f\"Initialized project at `{cli.config.get('path')}`\")\n\n    cli.run()\n\n---\n\ndef my_handler(prompt, cli):\n    # plug in real LLM call here\n    model = cli.config.get(\"model\")\n    return f\"[{model}] you said: **{prompt}**\"\n\n---\n\ndef main(input_path: str, max_words: int = 50, uppercase: bool = False) -> str:\n    \"\"\"Pretend this does real work (e.g. summarization).\"\"\"\n    try:\n        with open(input_path, \"r\") as f:\n            text = f.read()\n    except FileNotFoundError:\n        return f\"File not found: {input_path}\"\n\n    words = text.split()[:max_words]\n    result = \" \".join(words)\n    if uppercase:\n        result = result.upper()\n    return result\n\n---\n\ndef main():\n    args = parse_args(app_name=\"Summarizer CLI\", extra_args=EXTRA_ARGS)\n    cli = build_cli(args)\n    cli.run()\n\n---\n\n\"\"\"Example: expose summarizer.main(...) through a clizard interface.\n\nRun:\n    python wrap_summarizer.py --input-path notes.txt --max-words 20\n\"\"\"\nfrom clizard import GenericCLI, parse_args\nfrom summarizer import main as summarize\n\n# 1. Declare the script's own arguments as extra CLI flags.\nEXTRA_ARGS = [\n    {\"flags\": [\"--input-path\"], \"kwargs\": {\"default\": None, \"help\": \"Path to input text file\"}},\n    {\"flags\": [\"--max-words\"], \"kwargs\": {\"type\": int, \"default\": 50, \"help\": \"Max words to keep\"}},\n    {\"flags\": [\"--uppercase\"], \"kwargs\": {\"action\": \"store_true\", \"help\": \"Uppercase the output\"}},\n]\n\n---\n\n\"\"\"How to turn your existing argparse main() into a clizard interface.\"\"\"\nimport argparse\nfrom clizard import auto_cli",
+    "sources": [
+      "__init__.py",
+      "examples_auto_cli_release_tool.py",
+      "examples_llmlight_app.py",
+      "examples_summarizer.py",
+      "examples_wrap_summarizer.py"
+    ],
+    "existing_rst": "Examples.rst"
+  },
+  "FAQ": {
+    "page_title": "FAQ",
+    "description": "Frequently Asked Questions page. Anticipate common questions a new user would ask about this library: installation issues, common errors, parameter choices, performance tips, limitations, and how it compares to alternatives. Base answers strictly on the source code and docstrings. Draw on these class/function descriptions:\nbuild_parser: Create an argparse.ArgumentParser with common options.\nauto_cli: Build a GenericCLI automatically from an existing argparse.ArgumentParser.\nload_clizard_file: Return the parsed .clizard JSON dict, or {} if absent/invalid.\nensure_clizard_file: Return .clizard data, merged with sane defaults if absent.\nConfig: Simple JSON-backed settings store.\nupdate_from_args: Override settings with non-None values from parsed CLI args.\nGenericCLI: Reusable rich-based chat CLI.\ncommand: Decorator: register a slash-command. fn(self, prompt) -> None.\n_cast_value: Cast a string CLI value to match the type of the existing setting.\nhandle: Default handler if none supplied; override or pass `handler=`.\n_load_module: Load py_file as a module, preserving package context so that any\nfind_main: Return (module, main_func, file_path) or (None, None, None).\n_extract_argparse_settings: Many main()s take *no* parameters and instead build their own\nsettings_from_main: Inspect main()'s signature -> (settings dict, arg_meta dict, call_style).\nfind_snakemake_config: Locate a Snakemake config YAML: explicit `configfile:` in the\n\nAnd these parameter notes:\n[auto_cli] Parameters:\nparser : argparse.ArgumentParser\n    An already-configured parser (e.g. the one built in your existing\n    `main()`), or just `parser` before calling `parse_args()` on it.\nargs : argparse.Namespace, optional\n    Pre-parsed args. If omitted, `parser.parse_args()` is called.\napp_name : str, optional\n    Defaults to `parser.prog`.\nhandler : callable(prompt, cli) -> str, optional\n    Called for free-text input. If omitted, free-text input does nothing\n    special; use `run_callback` + a `/run` command instead (see below).\nrun_callback : callable(cli) -> str, optional\n    If given, a `/run` command is registered that calls\n    `run_callback(cli)` using the current settings, mirroring how you'd\n    call your script's `run(...)` function with `args.*`.\nconfig_path : str, optional\n    Where to persist settings between sessions.",
+    "sources": [
+      "__init__.py",
+      "__main__.py",
+      "cli_args.py",
+      "clizard_file.py",
+      "config.py",
+      "core.py",
+      "discover.py",
+      "examples_auto_cli_release_tool.py",
+      "examples_llmlight_app.py",
+      "examples_summarizer.py",
+      "examples_wrap_summarizer.py",
+      "git_info.py",
+      "project_info.py",
+      "scaffold.py",
+      "__init__.py",
+      "__main__.py",
+      "cli_args.py",
+      "clizard_file.py",
+      "config.py",
+      "core.py"
+    ],
+    "existing_rst": "FAQ.rst"
+  }
+}
