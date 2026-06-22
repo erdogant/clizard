@@ -1,85 +1,70 @@
-Installation Examples
-#####################
-
-Recommende is to install ``clizard`` from an isolated Python environment using conda or Pyenv:
-
-Create Conda Environment
-**************************
-
-.. code-block:: console
-
-    conda create -n env_clizard python=3.12
-    conda activate env_clizard
+Installation
+=============
 
 
-Create Pyenv Environment
-**************************
+.. note::
 
-.. code-block:: console
+   Latest release: ``0.1.0``
 
-    # Create a new project directory
-    mkdir my_clizard_project
-    cd my_clizard_project
+.. note::
 
-    # Create virtual environment
-    python -m venv venv
+   Source code: `clizard on GitHub <https://github.com/erdogant/clizard.git>`_
 
-    # Activate it
-    # On macOS/Linux:
-    source venv/bin/activate
+.. tip::
 
-    # On Windows:
-    venv\Scripts\activate
-
-    # Install memvid
-    pip install clizard
+   Documentation: `https://erdogant.github.io/clizard/ <https://erdogant.github.io/clizard/>`_
 
 
-Pypi
-**********************
+Create environment
+******************
 
 .. code-block:: console
 
-    # Install from Pypi:
-    pip install clizard
-
-    # Force update to latest version
-    pip install -U clizard
+   conda create -n env_clizard python=3.12
+   conda activate env_clizard
 
 
-Github Source
-************************************
+Install from PyPI
+*****************
 
 .. code-block:: console
 
-    # Install directly from github
-    pip install git+https://github.com/erdogant/clizard
+   pip install clizard
+
+   # Force update to the latest version
+   pip install -U clizard
 
 
-Uninstalling
-################
+Install from GitHub
+*******************
+
+.. code-block:: console
+
+   pip install git+https://github.com/erdogant/clizard.git
+
+   # Install a specific branch
+   pip install git+https://github.com/erdogant/clizard.git@main
+
+
+
+
+Uninstall
+================
 
 Remove environment
-**********************
+******************
 
 .. code-block:: console
 
-   # List all the active environments. clizard should be listed.
    conda env list
-
-   # Remove the clizard environment
-   conda env remove --name clizard
-
-   # List all the active environments. clizard should be absent.
+   conda env remove --name env_clizard
    conda env list
 
 
-Remove installation
-**********************
-
-Note that the removal of the environment will also remove the ``clizard`` installation.
+Remove package
+**************
 
 .. code-block:: console
 
-    # Install from Pypi:
-    pip uninstall clizard
+   pip uninstall clizard
+

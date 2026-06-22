@@ -36,8 +36,14 @@ def save_clizard_file(data: dict, repo_path="."):
     return path
 
 
-def ensure_clizard_file(repo_path=".", **overrides):
-    """Create a .clizard file with sane defaults if one doesn't exist yet."""
+def ensure_clizard_file(repo_path=".", create=True, **overrides):
+    """Return .clizard data, merged with sane defaults if absent.
+
+    If `create` is True (default) and no .clizard file exists yet, one is
+    written with the defaults. If `create` is False, the defaults are
+    returned without touching disk -- used by callers (e.g. the interactive
+    clizard CLI) that should work fine with no .clizard file present.
+    """
     path = Path(repo_path) / CLIZARD_FILENAME
     if path.exists():
         return load_clizard_file(repo_path)
@@ -51,5 +57,6 @@ def ensure_clizard_file(repo_path=".", **overrides):
         "updates": [],
     }
     data.update(overrides)
-    save_clizard_file(data, repo_path)
+    if create:
+        save_clizard_file(data, repo_path)
     return data

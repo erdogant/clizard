@@ -107,6 +107,8 @@ class GenericCLI:
     @staticmethod
     def _cast_value(raw: str, current):
         """Cast a string CLI value to match the type of the existing setting."""
+        if raw == "":
+            return current
         if isinstance(current, bool):
             return raw.strip().lower() in {"1", "true", "yes", "on"}
         if isinstance(current, int) and not isinstance(current, bool):
@@ -175,7 +177,8 @@ class GenericCLI:
                 label += f" [dim]choices: {choices}[/dim]"
 
             while True:
-                raw_value = Prompt.ask(label, default=str(current))
+                default_str = "" if current is None else str(current)
+                raw_value = Prompt.ask(label, default=default_str)
                 caster = info.get("type")
                 if caster and current is None:
                     try:

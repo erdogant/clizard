@@ -30,7 +30,7 @@ def build_cli(repo_path="."):
 
     git_info = get_git_info(repo_path)
     proj_info = get_project_info(repo_path)
-    clz = ensure_clizard_file(repo_path)
+    clz = ensure_clizard_file(repo_path, create=False)
 
     app_name = clz.get("app_name") or proj_info.get("name") or git_info.get("github_repo") or "clizard"
     docs_url = clz.get("docs_url") or proj_info.get("docs_url")
