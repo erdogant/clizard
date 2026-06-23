@@ -68,3 +68,6 @@ Remove package
 
    pip uninstall clizard
 
+
+
+.. include:: add_bottom.add
