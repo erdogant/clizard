@@ -4,7 +4,7 @@ Installation
 
 .. note::
 
-   Latest release: ``0.1.0``
+   Latest release: ``0.2.0``
 
 .. note::
 

@@ -6,7 +6,7 @@
   <meta charset="utf-8" /><meta name="viewport" content="width=device-width, initial-scale=1" />
 
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>&lt;no title&gt; &mdash; clizard clizard documentation</title>
+  <title>Examples &mdash; clizard clizard documentation</title>
       <link rel="stylesheet" type="text/css" href="_static/pygments.css?v=03e43079" />
       <link rel="stylesheet" type="text/css" href="_static/css/theme.css?v=9edc463e" />
       <link rel="stylesheet" type="text/css" href="_static/css/custom.css?v=e0179649" />
@@ -21,7 +21,7 @@
     <link rel="index" title="Index" href="genindex.html" />
     <link rel="search" title="Search" href="search.html" />
     <link rel="next" title="FAQ" href="FAQ.html" />
-    <link rel="prev" title="Algorithm – Technical Workflow of the CLI Tool" href="Algorithm.html" /> 
+    <link rel="prev" title="Summary" href="Summary.html" /> 
 </head>
 
 <body class="wy-body-for-nav"> 
@@ -53,13 +53,23 @@
 <ul>
 <li class="toctree-l1"><a class="reference internal" href="Summary.html">Summary</a></li>
 </ul>
-<p class="caption" role="heading"><span class="caption-text">Algorithm</span></p>
-<ul>
-<li class="toctree-l1"><a class="reference internal" href="Algorithm.html">Algorithm – Technical Workflow of the CLI Tool</a></li>
+<p class="caption" role="heading"><span class="caption-text">Examples</span></p>
+<ul class="current">
+<li class="toctree-l1 current"><a class="current reference internal" href="#">Examples</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="#release-tool-cli-example">Release Tool CLI Example</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#summarizer-cli-wrapper">Summarizer CLI Wrapper</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#llmlight-custom-cli">LLMlight Custom CLI</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#important-notes">Important Notes</a></li>
+</ul>
+</li>
 </ul>
 <p class="caption" role="heading"><span class="caption-text">FAQ</span></p>
 <ul>
 <li class="toctree-l1"><a class="reference internal" href="FAQ.html">FAQ</a></li>
+</ul>
+<p class="caption" role="heading"><span class="caption-text">Configuration</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="configuration.html">configuration</a></li>
 </ul>
 
     <a href= "genindex.html">Index</a>
@@ -78,7 +88,7 @@
           <div role="navigation" aria-label="Page navigation">
   <ul class="wy-breadcrumbs">
       <li><a href="index.html" class="icon icon-home" aria-label="Home"></a></li>
-      <li class="breadcrumb-item active">&lt;no title&gt;</li>
+      <li class="breadcrumb-item active">Examples</li>
       <li class="wy-breadcrumbs-aside">
             <a href="_sources/Examples.rst.txt" rel="nofollow"> View page source</a>
       </li>
@@ -88,8 +98,16 @@
           <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
            <div itemprop="articleBody">
              
-  <table class="docutils align-default" id="id1">
-<caption><span class="caption-text">Parameters of <code class="xref py py-func docutils literal notranslate"><span class="pre">run()</span></code></span><a class="headerlink" href="#id1" title="Link to this table"></a></caption>
+  <section id="examples">
+<h1>Examples<a class="headerlink" href="#examples" title="Link to this heading"></a></h1>
+<p>The following sections provide concrete usage patterns that illustrate how the <code class="xref py py-mod docutils literal notranslate"><span class="pre">clizard</span></code> framework can be leveraged to build powerful command‑line interfaces for a variety of tasks.  Each example is self‑contained, demonstrates key design decisions, and includes runnable code snippets that show the full interaction flow from argument parsing to execution.</p>
+<section id="release-tool-cli-example">
+<h2>Release Tool CLI Example<a class="headerlink" href="#release-tool-cli-example" title="Link to this heading"></a></h2>
+<p>The release tool example showcases how to wrap an existing <code class="xref py py-mod docutils literal notranslate"><span class="pre">argparse</span></code> parser with <code class="xref py py-func docutils literal notranslate"><span class="pre">clizard.auto_cli()</span></code>.  By delegating the heavy lifting of mapping command‑line arguments into a structured configuration object, developers can focus on the business logic of releasing artifacts while still providing a polished user experience.</p>
+<p>In this pattern, the <code class="docutils literal notranslate"><span class="pre">auto_cli</span></code> helper automatically extracts values from the parsed arguments and stores them in <code class="docutils literal notranslate"><span class="pre">cli.config.settings</span></code>.  The <code class="docutils literal notranslate"><span class="pre">run_callback</span></code> function then pulls those settings out and forwards them to the underlying release routine.  This separation of concerns keeps the CLI layer thin and testable while preserving the flexibility of a traditional argparse interface.</p>
+<p>Because the release workflow often involves side effects such as cleaning build directories, installing dependencies, or invoking external tools like Twine, the example demonstrates how optional integer flags can be converted into boolean semantics within the callback.  The verbosity level is also propagated to give users fine‑grained control over output noise.</p>
+<table class="docutils align-default" id="id1">
+<caption><span class="caption-text">Parameters of <code class="xref py py-func docutils literal notranslate"><span class="pre">auto_cli()</span></code></span><a class="headerlink" href="#id1" title="Link to this table"></a></caption>
 <colgroup>
 <col style="width: 16.7%" />
 <col style="width: 11.1%" />
@@ -104,30 +122,232 @@
 <tbody>
 <tr class="row-even"><td><p>username</p></td>
 <td><p><code class="docutils literal notranslate"><span class="pre">str</span></code></p></td>
-<td><p>Target repository account identifier (e.g., PyPI username).</p></td>
+<td><p>Username on Github/Gitlab used to identify the target repository.</p></td>
 </tr>
 <tr class="row-odd"><td><p>package</p></td>
 <td><p><code class="docutils literal notranslate"><span class="pre">str</span></code></p></td>
-<td><p>Name, version specifier, or local path of the artifact to release.</p></td>
+<td><p>Package name or path that should be released.</p></td>
 </tr>
 <tr class="row-even"><td><p>clean</p></td>
-<td><p><code class="docutils literal notranslate"><span class="pre">bool</span> <span class="pre">|</span> <span class="pre">None</span></code></p></td>
-<td><p>Flag to purge build directories before execution. Optional; defaults to <code class="docutils literal notranslate"><span class="pre">None</span></code>. After conversion from an integer argument, values <cite>0</cite> and <cite>1</cite> are interpreted as <code class="docutils literal notranslate"><span class="pre">False</span></code> and <code class="docutils literal notranslate"><span class="pre">True</span></code> respectively.</p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">int</span> <span class="pre">|</span> <span class="pre">None</span></code></p></td>
+<td><p>Flag to remove local build artifacts; <code class="docutils literal notranslate"><span class="pre">0</span></code> maps to <code class="docutils literal notranslate"><span class="pre">False</span></code>, <code class="docutils literal notranslate"><span class="pre">1</span></code> to <code class="docutils literal notranslate"><span class="pre">True</span></code>.</p></td>
 </tr>
 <tr class="row-odd"><td><p>install</p></td>
-<td><p><code class="docutils literal notranslate"><span class="pre">bool</span> <span class="pre">|</span> <span class="pre">None</span></code></p></td>
-<td><p>Flag to resolve and install project dependencies first. Optional; defaults to <code class="docutils literal notranslate"><span class="pre">None</span></code>. Integer arguments <cite>0</cite> and <cite>1</cite> are converted to <code class="docutils literal notranslate"><span class="pre">False</span></code> and <code class="docutils literal notranslate"><span class="pre">True</span></code>.</p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">int</span> <span class="pre">|</span> <span class="pre">None</span></code></p></td>
+<td><p>Flag to install the package locally before release; same integer mapping as <code class="docutils literal notranslate"><span class="pre">clean</span></code>.</p></td>
 </tr>
 <tr class="row-even"><td><p>twine</p></td>
 <td><p><code class="docutils literal notranslate"><span class="pre">str</span> <span class="pre">|</span> <span class="pre">None</span></code></p></td>
-<td><p>Path to a custom twine executable. Optional; defaults to <code class="docutils literal notranslate"><span class="pre">None</span></code>.</p></td>
+<td><p>Custom path to a Twine executable if the default is unsuitable.</p></td>
 </tr>
-<tr class="row-odd"><td><p>verbose</p></td>
+<tr class="row-odd"><td><p>verbosity</p></td>
 <td><p><code class="docutils literal notranslate"><span class="pre">int</span> <span class="pre">|</span> <span class="pre">None</span></code></p></td>
-<td><p>Verbosity level for output information. Optional; defaults to <code class="docutils literal notranslate"><span class="pre">None</span></code>.</p></td>
+<td><p>Verbosity level controlling the amount of runtime information emitted.</p></td>
 </tr>
 </tbody>
 </table>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">import</span><span class="w"> </span><span class="nn">argparse</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">clizard</span><span class="w"> </span><span class="kn">import</span> <span class="n">auto_cli</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">release_tool</span><span class="w"> </span><span class="kn">import</span> <span class="n">run</span>  <span class="c1"># The core release logic</span>
+
+<span class="k">def</span><span class="w"> </span><span class="nf">main</span><span class="p">():</span>
+    <span class="n">parser</span> <span class="o">=</span> <span class="n">argparse</span><span class="o">.</span><span class="n">ArgumentParser</span><span class="p">()</span>
+    <span class="n">parser</span><span class="o">.</span><span class="n">add_argument</span><span class="p">(</span><span class="s2">&quot;-u&quot;</span><span class="p">,</span> <span class="s2">&quot;--username&quot;</span><span class="p">,</span> <span class="nb">type</span><span class="o">=</span><span class="nb">str</span><span class="p">,</span>
+                        <span class="n">help</span><span class="o">=</span><span class="s2">&quot;Username on Github/Gitlab…&quot;</span><span class="p">)</span>
+    <span class="n">parser</span><span class="o">.</span><span class="n">add_argument</span><span class="p">(</span><span class="s2">&quot;-p&quot;</span><span class="p">,</span> <span class="s2">&quot;--package&quot;</span><span class="p">,</span> <span class="nb">type</span><span class="o">=</span><span class="nb">str</span><span class="p">,</span>
+                        <span class="n">help</span><span class="o">=</span><span class="s2">&quot;Package name to be released.&quot;</span><span class="p">)</span>
+    <span class="n">parser</span><span class="o">.</span><span class="n">add_argument</span><span class="p">(</span>
+        <span class="s2">&quot;-c&quot;</span><span class="p">,</span>
+        <span class="s2">&quot;--clean&quot;</span><span class="p">,</span>
+        <span class="nb">type</span><span class="o">=</span><span class="nb">int</span><span class="p">,</span>
+        <span class="n">choices</span><span class="o">=</span><span class="p">[</span><span class="mi">0</span><span class="p">,</span> <span class="mi">1</span><span class="p">],</span>
+        <span class="n">help</span><span class="o">=</span><span class="s2">&quot;Remove local builds: [dist], [build] and [x.egg-info].&quot;</span>
+    <span class="p">)</span>
+    <span class="n">parser</span><span class="o">.</span><span class="n">add_argument</span><span class="p">(</span>
+        <span class="s2">&quot;-i&quot;</span><span class="p">,</span>
+        <span class="s2">&quot;--install&quot;</span><span class="p">,</span>
+        <span class="nb">type</span><span class="o">=</span><span class="nb">int</span><span class="p">,</span>
+        <span class="n">choices</span><span class="o">=</span><span class="p">[</span><span class="mi">0</span><span class="p">,</span> <span class="mi">1</span><span class="p">],</span>
+        <span class="n">help</span><span class="o">=</span><span class="s2">&quot;Install this version on local machine.&quot;</span>
+    <span class="p">)</span>
+    <span class="n">parser</span><span class="o">.</span><span class="n">add_argument</span><span class="p">(</span><span class="s2">&quot;-t&quot;</span><span class="p">,</span> <span class="s2">&quot;--twine&quot;</span><span class="p">,</span> <span class="nb">type</span><span class="o">=</span><span class="nb">str</span><span class="p">,</span>
+                        <span class="n">help</span><span class="o">=</span><span class="s2">&quot;Path to twine in case you have a custom build.&quot;</span><span class="p">)</span>
+    <span class="n">parser</span><span class="o">.</span><span class="n">add_argument</span><span class="p">(</span>
+        <span class="s2">&quot;-v&quot;</span><span class="p">,</span>
+        <span class="s2">&quot;--verbosity&quot;</span><span class="p">,</span>
+        <span class="nb">type</span><span class="o">=</span><span class="nb">int</span><span class="p">,</span>
+        <span class="n">choices</span><span class="o">=</span><span class="p">[</span><span class="mi">0</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span> <span class="mi">2</span><span class="p">,</span> <span class="mi">3</span><span class="p">,</span> <span class="mi">4</span><span class="p">,</span> <span class="mi">5</span><span class="p">],</span>
+        <span class="n">help</span><span class="o">=</span><span class="s2">&quot;Verbosity level (higher number tends to more information).&quot;</span>
+    <span class="p">)</span>
+    <span class="n">args</span> <span class="o">=</span> <span class="n">parser</span><span class="o">.</span><span class="n">parse_args</span><span class="p">()</span>
+
+    <span class="k">def</span><span class="w"> </span><span class="nf">run_callback</span><span class="p">(</span><span class="n">cli</span><span class="p">):</span>
+        <span class="n">s</span> <span class="o">=</span> <span class="n">cli</span><span class="o">.</span><span class="n">config</span><span class="o">.</span><span class="n">settings</span>
+        <span class="n">run</span><span class="p">(</span>
+            <span class="n">s</span><span class="p">[</span><span class="s2">&quot;username&quot;</span><span class="p">],</span>
+            <span class="n">s</span><span class="p">[</span><span class="s2">&quot;package&quot;</span><span class="p">],</span>
+            <span class="n">clean</span><span class="o">=</span><span class="n">s</span><span class="p">[</span><span class="s2">&quot;clean&quot;</span><span class="p">],</span>
+            <span class="n">install</span><span class="o">=</span><span class="n">s</span><span class="p">[</span><span class="s2">&quot;install&quot;</span><span class="p">],</span>
+            <span class="n">twine</span><span class="o">=</span><span class="n">s</span><span class="p">[</span><span class="s2">&quot;twine&quot;</span><span class="p">],</span>
+            <span class="n">verbose</span><span class="o">=</span><span class="n">s</span><span class="p">[</span><span class="s2">&quot;verbosity&quot;</span><span class="p">]</span>
+        <span class="p">)</span>
+
+    <span class="n">cli</span> <span class="o">=</span> <span class="n">auto_cli</span><span class="p">(</span><span class="n">parser</span><span class="p">,</span> <span class="n">args</span><span class="o">=</span><span class="n">args</span><span class="p">,</span>
+                   <span class="n">app_name</span><span class="o">=</span><span class="s2">&quot;ReleaseTool&quot;</span><span class="p">,</span>
+                   <span class="n">run_callback</span><span class="o">=</span><span class="n">run_callback</span><span class="p">)</span>
+    <span class="n">cli</span><span class="o">.</span><span class="n">run</span><span class="p">()</span>
+</pre></div>
+</div>
+</section>
+<section id="summarizer-cli-wrapper">
+<h2>Summarizer CLI Wrapper<a class="headerlink" href="#summarizer-cli-wrapper" title="Link to this heading"></a></h2>
+<p>This example demonstrates how a simple text summarization function can be exposed through an interactive GenericCLI.  The wrapper adds slash commands and free‑text handling, allowing users to trigger summarization either via explicit <cite>/run</cite> commands or by simply typing the path of a document.</p>
+<p>The <code class="docutils literal notranslate"><span class="pre">GenericCLI</span></code> instance is configured with default settings derived from command‑line arguments.  The <code class="docutils literal notranslate"><span class="pre">/run</span></code> command reads those settings, validates that an input file exists, and then calls <code class="xref py py-func docutils literal notranslate"><span class="pre">summarize()</span></code>.  Free‑text prompts are interpreted as file paths, enabling quick one‑liner usage without needing to remember the exact syntax of a slash command.</p>
+<p>By exposing both a structured command interface and a flexible free‑text handler, this pattern provides an intuitive user experience that scales from casual experimentation to scripted automation.</p>
+<table class="docutils align-default" id="id2">
+<caption><span class="caption-text">Parameters of <code class="xref py py-func docutils literal notranslate"><span class="pre">summarize()</span></code></span><a class="headerlink" href="#id2" title="Link to this table"></a></caption>
+<colgroup>
+<col style="width: 16.7%" />
+<col style="width: 11.1%" />
+<col style="width: 72.2%" />
+</colgroup>
+<thead>
+<tr class="row-odd"><th class="head"><p>Name</p></th>
+<th class="head"><p>Type</p></th>
+<th class="head"><p>Description</p></th>
+</tr>
+</thead>
+<tbody>
+<tr class="row-even"><td><p>input_path</p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">str</span></code></p></td>
+<td><p>Path to the input text file.</p></td>
+</tr>
+<tr class="row-odd"><td><p>max_words</p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">int</span></code></p></td>
+<td><p>Maximum number of whitespace‑delimited tokens to extract from the start of the document. Defaults to 50.</p></td>
+</tr>
+<tr class="row-even"><td><p>uppercase</p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">bool</span></code></p></td>
+<td><p>If True, all extracted tokens are converted to uppercase before joining.</p></td>
+</tr>
+</tbody>
+</table>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="k">def</span><span class="w"> </span><span class="nf">build_cli</span><span class="p">(</span><span class="n">args</span><span class="p">):</span>
+    <span class="n">cli</span> <span class="o">=</span> <span class="n">GenericCLI</span><span class="p">(</span>
+        <span class="n">app_name</span><span class="o">=</span><span class="s2">&quot;Summarizer CLI&quot;</span><span class="p">,</span>
+        <span class="n">settings</span><span class="o">=</span><span class="p">{</span>
+            <span class="s2">&quot;input_path&quot;</span><span class="p">:</span> <span class="n">args</span><span class="o">.</span><span class="n">input_path</span><span class="p">,</span>
+            <span class="s2">&quot;max_words&quot;</span><span class="p">:</span> <span class="n">args</span><span class="o">.</span><span class="n">max_words</span><span class="p">,</span>
+            <span class="s2">&quot;uppercase&quot;</span><span class="p">:</span> <span class="n">args</span><span class="o">.</span><span class="n">uppercase</span><span class="p">,</span>
+        <span class="p">},</span>
+        <span class="n">tips</span><span class="o">=</span><span class="p">[</span><span class="s2">&quot;/run&quot;</span><span class="p">,</span> <span class="s2">&quot;/settings&quot;</span><span class="p">,</span> <span class="s2">&quot;/docs&quot;</span><span class="p">,</span> <span class="s2">&quot;/help&quot;</span><span class="p">],</span>
+    <span class="p">)</span>
+
+    <span class="nd">@cli</span><span class="o">.</span><span class="n">command</span><span class="p">(</span><span class="s2">&quot;/run&quot;</span><span class="p">,</span> <span class="s2">&quot;Run the summarizer with current settings&quot;</span><span class="p">)</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">cmd_run</span><span class="p">(</span><span class="n">prompt</span><span class="p">):</span>
+        <span class="n">path</span> <span class="o">=</span> <span class="n">cli</span><span class="o">.</span><span class="n">config</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;input_path&quot;</span><span class="p">)</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="n">path</span><span class="p">:</span>
+            <span class="n">cli</span><span class="o">.</span><span class="n">error</span><span class="p">(</span>
+                <span class="s2">&quot;No input_path set. Use: /settings set input_path &lt;file&gt;&quot;</span>
+            <span class="p">)</span>
+            <span class="k">return</span>
+        <span class="n">cli</span><span class="o">.</span><span class="n">status</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Summarizing </span><span class="si">{</span><span class="n">path</span><span class="si">}</span><span class="s2">...&quot;</span><span class="p">)</span>
+        <span class="n">result</span> <span class="o">=</span> <span class="n">summarize</span><span class="p">(</span>
+            <span class="n">input_path</span><span class="o">=</span><span class="n">path</span><span class="p">,</span>
+            <span class="n">max_words</span><span class="o">=</span><span class="n">cli</span><span class="o">.</span><span class="n">config</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;max_words&quot;</span><span class="p">),</span>
+            <span class="n">uppercase</span><span class="o">=</span><span class="n">cli</span><span class="o">.</span><span class="n">config</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;uppercase&quot;</span><span class="p">),</span>
+        <span class="p">)</span>
+        <span class="n">cli</span><span class="o">.</span><span class="n">assistant_message</span><span class="p">(</span><span class="n">result</span><span class="p">)</span>
+
+    <span class="k">def</span><span class="w"> </span><span class="nf">handler</span><span class="p">(</span><span class="n">prompt</span><span class="p">,</span> <span class="n">cli</span><span class="p">):</span>
+        <span class="k">return</span> <span class="n">summarize</span><span class="p">(</span>
+            <span class="n">input_path</span><span class="o">=</span><span class="n">prompt</span><span class="p">,</span>
+            <span class="n">max_words</span><span class="o">=</span><span class="n">cli</span><span class="o">.</span><span class="n">config</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;max_words&quot;</span><span class="p">),</span>
+            <span class="n">uppercase</span><span class="o">=</span><span class="n">cli</span><span class="o">.</span><span class="n">config</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;uppercase&quot;</span><span class="p">),</span>
+        <span class="p">)</span>
+
+    <span class="n">cli</span><span class="o">.</span><span class="n">handler</span> <span class="o">=</span> <span class="n">handler</span>
+    <span class="k">return</span> <span class="n">cli</span>
+</pre></div>
+</div>
+</section>
+<section id="llmlight-custom-cli">
+<h2>LLMlight Custom CLI<a class="headerlink" href="#llmlight-custom-cli" title="Link to this heading"></a></h2>
+<p>The LLMlight example illustrates how to extend <code class="xref py py-class docutils literal notranslate"><span class="pre">clizard.GenericCLI</span></code> with custom commands, ASCII art, and a user‑defined handler that would normally interface with an LLM backend.  The design showcases project‑specific logic in the <cite>/init</cite> command while keeping the core CLI loop lightweight.</p>
+<p>In this pattern, the <code class="docutils literal notranslate"><span class="pre">GenericCLI</span></code> is instantiated with a multi‑line ASCII banner that gives the tool a distinctive visual identity.  Settings such as model identifier, local path, and temperature are supplied via both command‑line arguments and an optional configuration file.  The handler function, <code class="docutils literal notranslate"><span class="pre">my_handler</span></code>, acts as a placeholder for real LLM calls; in practice it would forward prompts to a language model API and return the generated response.</p>
+<p>The example also demonstrates how to update settings from parsed arguments after CLI construction, ensuring that defaults can be overridden at runtime without modifying the original configuration dictionary.</p>
+<table class="docutils align-default" id="id3">
+<caption><span class="caption-text">Parameters of <code class="xref py py-func docutils literal notranslate"><span class="pre">my_handler()</span></code></span><a class="headerlink" href="#id3" title="Link to this table"></a></caption>
+<colgroup>
+<col style="width: 16.7%" />
+<col style="width: 11.1%" />
+<col style="width: 72.2%" />
+</colgroup>
+<thead>
+<tr class="row-odd"><th class="head"><p>Name</p></th>
+<th class="head"><p>Type</p></th>
+<th class="head"><p>Description</p></th>
+</tr>
+</thead>
+<tbody>
+<tr class="row-even"><td><p>model</p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">str</span></code></p></td>
+<td><p>Model identifier to be used for inference.</p></td>
+</tr>
+<tr class="row-odd"><td><p>path</p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">str</span></code></p></td>
+<td><p>Local filesystem path where the model resides.</p></td>
+</tr>
+<tr class="row-even"><td><p>temperature</p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">float</span></code></p></td>
+<td><p>Sampling temperature controlling output randomness.</p></td>
+</tr>
+</tbody>
+</table>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="k">def</span><span class="w"> </span><span class="nf">main</span><span class="p">():</span>
+    <span class="n">args</span> <span class="o">=</span> <span class="n">parse_args</span><span class="p">(</span><span class="n">app_name</span><span class="o">=</span><span class="s2">&quot;LLMlight&quot;</span><span class="p">,</span> <span class="n">extra_args</span><span class="o">=</span><span class="n">EXTRA_ARGS</span><span class="p">)</span>
+
+    <span class="n">cli</span> <span class="o">=</span> <span class="n">GenericCLI</span><span class="p">(</span>
+        <span class="n">app_name</span><span class="o">=</span><span class="n">args</span><span class="o">.</span><span class="n">name</span> <span class="ow">or</span> <span class="s2">&quot;LLMlight&quot;</span><span class="p">,</span>
+        <span class="n">ascii_art</span><span class="o">=</span><span class="sa">r</span><span class="s1">&#39;&#39;&#39;</span>
+<span class="s1">/\_/\</span>
+<span class="s1">( o.o )</span>
+<span class="s1">&gt; ^ &lt;</span>
+<span class="s1">&#39;&#39;&#39;</span>
+
+<span class="n">settings</span><span class="o">=</span><span class="p">{</span>
+            <span class="s2">&quot;model&quot;</span><span class="p">:</span> <span class="s2">&quot;google/gemma-26B-a4B&quot;</span><span class="p">,</span>
+            <span class="s2">&quot;path&quot;</span><span class="p">:</span> <span class="s2">&quot;C:/LLMlight&quot;</span><span class="p">,</span>
+            <span class="s2">&quot;temperature&quot;</span><span class="p">:</span> <span class="mf">0.7</span><span class="p">,</span>
+        <span class="p">},</span>
+        <span class="n">config_path</span><span class="o">=</span><span class="n">args</span><span class="o">.</span><span class="n">config</span><span class="p">,</span>
+        <span class="n">handler</span><span class="o">=</span><span class="n">my_handler</span><span class="p">,</span>
+        <span class="n">tips</span><span class="o">=</span><span class="p">[</span><span class="s2">&quot;/init&quot;</span><span class="p">,</span> <span class="s2">&quot;/help&quot;</span><span class="p">,</span> <span class="s2">&quot;generate documentation&quot;</span><span class="p">],</span>
+        <span class="n">updates</span><span class="o">=</span><span class="p">[</span>
+            <span class="s2">&quot;Agent system improvements&quot;</span><span class="p">,</span>
+            <span class="s2">&quot;Documentation generation&quot;</span><span class="p">,</span>
+            <span class="s2">&quot;Local model support&quot;</span><span class="p">,</span>
+        <span class="p">],</span>
+    <span class="p">)</span>
+    <span class="n">cli</span><span class="o">.</span><span class="n">config</span><span class="o">.</span><span class="n">update_from_args</span><span class="p">(</span>
+        <span class="p">{</span><span class="s2">&quot;model&quot;</span><span class="p">:</span> <span class="n">args</span><span class="o">.</span><span class="n">model</span><span class="p">,</span> <span class="s2">&quot;path&quot;</span><span class="p">:</span> <span class="n">args</span><span class="o">.</span><span class="n">path</span><span class="p">,</span> <span class="s2">&quot;temperature&quot;</span><span class="p">:</span> <span class="n">args</span><span class="o">.</span><span class="n">temperature</span><span class="p">}</span>
+    <span class="p">)</span>
+
+    <span class="nd">@cli</span><span class="o">.</span><span class="n">command</span><span class="p">(</span><span class="s2">&quot;/init&quot;</span><span class="p">,</span> <span class="s2">&quot;Initialize a new project&quot;</span><span class="p">)</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">cmd_init</span><span class="p">(</span><span class="n">prompt</span><span class="p">):</span>
+        <span class="n">cli</span><span class="o">.</span><span class="n">assistant_message</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Initialized project at `</span><span class="si">{</span><span class="n">cli</span><span class="o">.</span><span class="n">config</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;path&#39;</span><span class="p">)</span><span class="si">}</span><span class="s2">`&quot;</span><span class="p">)</span>
+
+    <span class="n">cli</span><span class="o">.</span><span class="n">run</span><span class="p">()</span>
+</pre></div>
+</div>
+</section>
+<section id="important-notes">
+<h2>Important Notes<a class="headerlink" href="#important-notes" title="Link to this heading"></a></h2>
+<ul class="simple">
+<li><p>All examples rely on the <code class="xref py py-class docutils literal notranslate"><span class="pre">clizard.GenericCLI</span></code> base class from the <em>clizard</em> package; ensure it is installed and importable.</p></li>
+<li><p>The <code class="docutils literal notranslate"><span class="pre">auto_cli</span></code> helper automatically maps argparse arguments to CLI settings, simplifying integration with legacy parsers.</p></li>
+<li><p>Free‑text handlers allow users to type arbitrary prompts that are interpreted as input paths or commands, providing a natural interaction model for exploratory workflows.</p></li>
+</ul>
 <hr>
 <center>
         <script async src="https://media.ethicalads.io/media/client/ethicalads.min.js"></script>
@@ -135,12 +355,14 @@
         <!-- <div data-ea-publisher="erdogantgithubio" data-ea-type="image"></div> -->
         <div data-ea-publisher="erdogantgithubio" data-ea-type="image" data-ea-style="stickybox"></div>
 </center>
-<hr>
+<hr></section>
+</section>
+
 
            </div>
           </div>
           <footer><div class="rst-footer-buttons" role="navigation" aria-label="Footer">
-        <a href="Algorithm.html" class="btn btn-neutral float-left" title="Algorithm – Technical Workflow of the CLI Tool" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left" aria-hidden="true"></span> Previous</a>
+        <a href="Summary.html" class="btn btn-neutral float-left" title="Summary" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left" aria-hidden="true"></span> Previous</a>
         <a href="FAQ.html" class="btn btn-neutral float-right" title="FAQ" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right" aria-hidden="true"></span></a>
     </div>
 
