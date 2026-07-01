@@ -1,0 +1,222 @@
+
+
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" data-content_root="../">
+<head>
+  <meta charset="utf-8" /><meta name="viewport" content="width=device-width, initial-scale=1" />
+
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Summary &mdash; clizard clizard documentation</title>
+      <link rel="stylesheet" type="text/css" href="../_static/pygments.css?v=03e43079" />
+      <link rel="stylesheet" type="text/css" href="../_static/css/theme.css?v=9edc463e" />
+      <link rel="stylesheet" type="text/css" href="../_static/css/custom.css?v=e0179649" />
+
+  
+      <script src="../_static/jquery.js?v=5d32c60e"></script>
+      <script src="../_static/_sphinx_javascript_frameworks_compat.js?v=2cd50e6c"></script>
+      <script src="../_static/documentation_options.js?v=a29ca5f1"></script>
+      <script src="../_static/doctools.js?v=fd6eb6e6"></script>
+      <script src="../_static/sphinx_highlight.js?v=6ffebe34"></script>
+    <script src="../_static/js/theme.js"></script>
+    <link rel="index" title="Index" href="../genindex.html" />
+    <link rel="search" title="Search" href="../search.html" /> 
+</head>
+
+<body class="wy-body-for-nav"> 
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+
+          
+          
+          <a href="../index.html" class="icon icon-home">
+            clizard
+          </a>
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" aria-label="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+        </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+    
+              <p class="caption" role="heading"><span class="caption-text">Installation</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../Installation.html">Installation</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../Installation.html#uninstall">Uninstall</a></li>
+</ul>
+<p class="caption" role="heading"><span class="caption-text">Summary</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../Summary.html">Summary</a></li>
+</ul>
+<p class="caption" role="heading"><span class="caption-text">Examples</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../Examples.html">Examples</a></li>
+</ul>
+<p class="caption" role="heading"><span class="caption-text">FAQ</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../FAQ.html">FAQ</a></li>
+</ul>
+<p class="caption" role="heading"><span class="caption-text">Configuration</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../configuration.html">configuration</a></li>
+</ul>
+
+    <a href= "../genindex.html">Index</a>
+  
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap"><nav class="wy-nav-top" aria-label="Mobile navigation menu" >
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../index.html">clizard</a>
+      </nav>
+
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          <div role="navigation" aria-label="Page navigation">
+  <ul class="wy-breadcrumbs">
+      <li><a href="../index.html" class="icon icon-home" aria-label="Home"></a></li>
+      <li class="breadcrumb-item active">Summary</li>
+      <li class="wy-breadcrumbs-aside">
+            <a href="../_sources/_backup/Summary.rst.txt" rel="nofollow"> View page source</a>
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+             
+  <section id="summary">
+<h1>Summary<a class="headerlink" href="#summary" title="Link to this heading"></a></h1>
+<section id="background">
+<h2>Background<a class="headerlink" href="#background" title="Link to this heading"></a></h2>
+<p>The <em>clizard</em> library is a lightweight toolkit designed to simplify the creation and management of command‑line interfaces (CLIs) in Python projects. Its core philosophy is that most CLI applications share a common set of options—such as verbosity, configuration file paths, and help flags—and that these can be generated automatically without repetitive boilerplate code. By providing a small API surface around <cite>argparse</cite>, <em>clizard</em> allows developers to focus on business logic while still delivering a polished user experience.</p>
+<p>The library was conceived in response to the growing need for reproducible data‑science workflows. Researchers often prototype scripts that later become production tools, yet they repeatedly write similar CLI scaffolding. <em>clizard</em> eliminates this duplication by offering functions like <cite>build_parser</cite> and <cite>auto_cli</cite>, which introspect existing parsers or configuration files and generate fully functional command lines on the fly. This not only speeds up development but also enforces consistency across projects.</p>
+<p>Another motivation behind <em>clizard</em> is to bridge the gap between code and documentation. The library can load a <cite>.clizard.json</cite> file that contains metadata about the CLI, such as default values and help messages. Functions like <cite>load_clizard_file</cite> and <cite>ensure_clizard_file</cite> provide robust handling of these files, ensuring that even if a user forgets to supply one, sensible defaults are applied automatically.</p>
+<p>Finally, <em>clizard</em> embraces modern Python packaging practices. It is distributed on PyPI (<cite>pip install clizard</cite>) and hosted on GitHub, making it easy for teams to integrate into continuous‑integration pipelines. The accompanying documentation site demonstrates how to set up a virtual environment with conda or pip, ensuring that new users can get started quickly.</p>
+</section>
+<section id="output">
+<h2>Output<a class="headerlink" href="#output" title="Link to this heading"></a></h2>
+<p>When combined, the components of <em>clizard</em> produce a fully‑featured command‑line interface that is both user‑friendly and maintainable. Users can invoke their scripts with standard flags such as <cite>–help</cite>, <cite>–verbose</cite>, or <cite>–config</cite>, and the library automatically parses these options into a configuration dictionary. This dictionary can then be passed to any function in the application, allowing downstream code to remain agnostic of how parameters were supplied.</p>
+<p>Beyond simple flag parsing, <em>clizard</em> also supports loading structured JSON configuration files (<cite>.clizard.json</cite>). These files can define default values for arguments, specify mutually exclusive groups, or even embed documentation snippets that are rendered by <cite>auto_cli</cite>. As a result, the output of the library is not just parsed arguments but a coherent, self‑documenting CLI that reduces friction for both developers and end users.</p>
+<p>Because <em>clizard</em> operates on top of <cite>argparse</cite>, it inherits all of its extensibility. Developers can add custom argument types, subparsers, or even integrate with other libraries such as Click or Typer if needed. The library’s design encourages incremental adoption: a project may start by wrapping an existing parser with <cite>auto_cli</cite> and later evolve to use the full configuration management features.</p>
+</section>
+<section id="schematic-overview">
+<h2>Schematic Overview<a class="headerlink" href="#schematic-overview" title="Link to this heading"></a></h2>
+<p>The high‑level workflow of <em>clizard</em> can be visualised as follows:</p>
+<div class="highlight-text notranslate"><div class="highlight"><pre><span></span>┌───────────────────────┐
+│  User invokes script   │
+│     with CLI flags      │
+└────────────▲───────────┘
+             │
+             ▼
+┌───────────────────────┐
+│  build_parser() creates│
+│  an ArgumentParser    │
+│  with common options   │
+└────────────▲───────────┘
+             │
+             ▼
+┌───────────────────────┐
+│  auto_cli() attaches   │
+│  the parser to a      │
+│  function or class    │
+└────────────▲───────────┘
+             │
+             ▼
+┌───────────────────────┐
+│  load_clizard_file()  │
+│  reads .clizard.json  │
+│  (if present)         │
+└────────────▲───────────┘
+             │
+             ▼
+┌───────────────────────┐
+│  ensure_clizard_file()│
+│  merges defaults with │
+│  user overrides       │
+└────────────▲───────────┘
+             │
+             ▼
+┌───────────────────────┐
+│  Config() stores      │
+│  configuration in a   │
+│  JSON‑backed dict     │
+└────────────▲───────────┘
+             │
+             ▼
+┌───────────────────────┐
+│  update_from_args()   │
+│  updates Config with  │
+│  parsed CLI arguments │
+└───────────────────────┘
+</pre></div>
+</div>
+<p>Each step is implemented by a dedicated function or class, and the diagram illustrates how they cooperate to transform raw command‑line input into a structured configuration object ready for use in an application.</p>
+<section id="example-usage">
+<h3>Example Usage<a class="headerlink" href="#example-usage" title="Link to this heading"></a></h3>
+<p>Below is a minimal example that demonstrates how <em>clizard</em> can be used to build a CLI around a simple function:</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span><span class="w"> </span><span class="nn">clizard</span><span class="w"> </span><span class="kn">import</span> <span class="n">build_parser</span><span class="p">,</span> <span class="n">auto_cli</span><span class="p">,</span> <span class="n">load_clizard_file</span><span class="p">,</span> <span class="n">ensure_clizard_file</span><span class="p">,</span> <span class="n">Config</span><span class="p">,</span> <span class="n">update_from_args</span>
+
+<span class="k">def</span><span class="w"> </span><span class="nf">greet</span><span class="p">(</span><span class="n">name</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="n">times</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="mi">1</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Prints a greeting multiple times.&quot;&quot;&quot;</span>
+    <span class="k">for</span> <span class="n">_</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">times</span><span class="p">):</span>
+        <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Hello, </span><span class="si">{</span><span class="n">name</span><span class="si">}</span><span class="s2">!&quot;</span><span class="p">)</span>
+
+<span class="c1"># Create a parser with common options</span>
+<span class="n">parser</span> <span class="o">=</span> <span class="n">build_parser</span><span class="p">()</span>
+
+<span class="c1"># Attach the parser to the function</span>
+<span class="n">cli</span> <span class="o">=</span> <span class="n">auto_cli</span><span class="p">(</span><span class="n">greet</span><span class="p">,</span> <span class="n">parser</span><span class="o">=</span><span class="n">parser</span><span class="p">)</span>
+
+<span class="k">if</span> <span class="vm">__name__</span> <span class="o">==</span> <span class="s2">&quot;__main__&quot;</span><span class="p">:</span>
+    <span class="c1"># Load optional configuration file</span>
+    <span class="n">cfg_data</span> <span class="o">=</span> <span class="n">load_clizard_file</span><span class="p">()</span>
+    <span class="n">cfg</span> <span class="o">=</span> <span class="n">ensure_clizard_file</span><span class="p">(</span><span class="n">cfg_data</span><span class="p">)</span>
+    <span class="n">config</span> <span class="o">=</span> <span class="n">Config</span><span class="p">(</span><span class="n">data</span><span class="o">=</span><span class="n">cfg</span><span class="p">)</span>
+
+    <span class="c1"># Parse command‑line arguments and update the config</span>
+    <span class="n">args</span> <span class="o">=</span> <span class="n">cli</span><span class="o">.</span><span class="n">parse_args</span><span class="p">()</span>
+    <span class="n">update_from_args</span><span class="p">(</span><span class="n">args</span><span class="p">,</span> <span class="n">config</span><span class="p">)</span>
+
+    <span class="c1"># Call the function with parsed parameters</span>
+    <span class="n">greet</span><span class="p">(</span><span class="o">**</span><span class="n">config</span><span class="o">.</span><span class="n">to_dict</span><span class="p">())</span>
+</pre></div>
+</div>
+</section>
+</section>
+</section>
+
+
+           </div>
+          </div>
+          <footer>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>&#169; Copyright 2022, Erdogan Taskesen.</p>
+  </div>
+
+  Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
+    provided by <a href="https://readthedocs.org">Read the Docs</a>.
+   
+
+</footer>
+        </div>
+      </div>
+    </section>
+  </div>
+  <script>
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script> 
+
+</body>
+</html>

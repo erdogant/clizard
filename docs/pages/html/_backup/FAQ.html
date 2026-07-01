@@ -1,0 +1,256 @@
+
+
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" data-content_root="../">
+<head>
+  <meta charset="utf-8" /><meta name="viewport" content="width=device-width, initial-scale=1" />
+
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>FAQ &mdash; clizard clizard documentation</title>
+      <link rel="stylesheet" type="text/css" href="../_static/pygments.css?v=03e43079" />
+      <link rel="stylesheet" type="text/css" href="../_static/css/theme.css?v=9edc463e" />
+      <link rel="stylesheet" type="text/css" href="../_static/css/custom.css?v=e0179649" />
+
+  
+      <script src="../_static/jquery.js?v=5d32c60e"></script>
+      <script src="../_static/_sphinx_javascript_frameworks_compat.js?v=2cd50e6c"></script>
+      <script src="../_static/documentation_options.js?v=a29ca5f1"></script>
+      <script src="../_static/doctools.js?v=fd6eb6e6"></script>
+      <script src="../_static/sphinx_highlight.js?v=6ffebe34"></script>
+    <script src="../_static/js/theme.js"></script>
+    <link rel="index" title="Index" href="../genindex.html" />
+    <link rel="search" title="Search" href="../search.html" /> 
+</head>
+
+<body class="wy-body-for-nav"> 
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+
+          
+          
+          <a href="../index.html" class="icon icon-home">
+            clizard
+          </a>
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" aria-label="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+        </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+    
+              <p class="caption" role="heading"><span class="caption-text">Installation</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../Installation.html">Installation</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../Installation.html#uninstall">Uninstall</a></li>
+</ul>
+<p class="caption" role="heading"><span class="caption-text">Summary</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../Summary.html">Summary</a></li>
+</ul>
+<p class="caption" role="heading"><span class="caption-text">Examples</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../Examples.html">Examples</a></li>
+</ul>
+<p class="caption" role="heading"><span class="caption-text">FAQ</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../FAQ.html">FAQ</a></li>
+</ul>
+<p class="caption" role="heading"><span class="caption-text">Configuration</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../configuration.html">configuration</a></li>
+</ul>
+
+    <a href= "../genindex.html">Index</a>
+  
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap"><nav class="wy-nav-top" aria-label="Mobile navigation menu" >
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../index.html">clizard</a>
+      </nav>
+
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          <div role="navigation" aria-label="Page navigation">
+  <ul class="wy-breadcrumbs">
+      <li><a href="../index.html" class="icon icon-home" aria-label="Home"></a></li>
+      <li class="breadcrumb-item active">FAQ</li>
+      <li class="wy-breadcrumbs-aside">
+            <a href="../_sources/_backup/FAQ.rst.txt" rel="nofollow"> View page source</a>
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+             
+  <section id="faq">
+<h1>FAQ<a class="headerlink" href="#faq" title="Link to this heading"></a></h1>
+<section id="frequently-asked-questions">
+<h2>Frequently Asked Questions<a class="headerlink" href="#frequently-asked-questions" title="Link to this heading"></a></h2>
+<p>This page gathers the most common questions that arise when working with <strong>clizard</strong>.  Each section is written as a self‑contained narrative: we first describe why the issue matters, then explain how it manifests in practice, and finally provide concrete steps to resolve it.</p>
+<section id="installation-issues">
+<h3>Installation Issues<a class="headerlink" href="#installation-issues" title="Link to this heading"></a></h3>
+<p>When you try to install clizard via pip or from source, you may run into a handful of pitfalls that are easy to overlook.  Understanding <em>why</em> these problems occur is key to troubleshooting them efficiently.</p>
+<p>First, the library contains optional C extensions that accelerate parsing.  If your environment lacks the necessary build tools (for example, <cite>setuptools‑build</cite> or a compiler), pip will silently fall back to pure Python but may emit warnings or fail outright.  This explains why you sometimes see an error message about missing headers even though the package appears to install.</p>
+<p>Second, installing from source requires that the current working directory contains a valid <cite>setup.py</cite> (or <cite>pyproject.toml</cite>).  Running <cite>python -m pip install .</cite> without being in the repository root will cause pip to look for these files and fail.  The error message is often cryptic: “No such file or directory: ‘setup.cfg’”, which can mislead users into thinking the source tree is corrupted.</p>
+<p>Finally, clizard’s configuration system expects a JSON file named <cite>.clizard</cite> in the project root.  If you install globally but later run commands from a different directory, the library will search for this file and silently fall back to defaults, producing confusing “missing configuration” errors.</p>
+<p>The following table lists the two most frequently used functions that influence installation behaviour, along with their key parameters:</p>
+<table class="docutils align-default" id="id1">
+<caption><span class="caption-text">Installation‑related functions</span><a class="headerlink" href="#id1" title="Link to this table"></a></caption>
+<colgroup>
+<col style="width: 20.0%" />
+<col style="width: 20.0%" />
+<col style="width: 60.0%" />
+</colgroup>
+<thead>
+<tr class="row-odd"><th class="head"><p>Function</p></th>
+<th class="head"><p>Parameter</p></th>
+<th class="head"><p>Description</p></th>
+</tr>
+</thead>
+<tbody>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">build_parser</span></code></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">--model</span></code> (str, default: <code class="docutils literal notranslate"><span class="pre">None</span></code>)</p></td>
+<td><p>Path to a model file; missing if not provided.</p></td>
+</tr>
+<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">auto_cli</span></code></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">--config</span></code> (str, default: <code class="docutils literal notranslate"><span class="pre">None</span></code>)</p></td>
+<td><p>Path to a custom configuration JSON; ignored if absent.</p></td>
+</tr>
+</tbody>
+</table>
+<p>The following console snippets show the recommended commands for each installation method:</p>
+<div class="highlight-console notranslate"><div class="highlight"><pre><span></span><span class="go">pip install clizard</span>
+<span class="gp"># </span>or<span class="w"> </span>from<span class="w"> </span><span class="nb">source</span>
+<span class="go">python -m pip install .</span>
+</pre></div>
+</div>
+<p>If you encounter a failure due to missing C extensions, make sure that <code class="docutils literal notranslate"><span class="pre">setuptools-build</span></code> is installed and that your compiler toolchain (gcc/clang/MSVC) is available in the PATH.  For source installs, double‑check that you are executing the command from the repository root where <code class="docutils literal notranslate"><span class="pre">setup.py</span></code> resides.</p>
+</section>
+<section id="common-errors">
+<h3>Common Errors<a class="headerlink" href="#common-errors" title="Link to this heading"></a></h3>
+<p>Runtime errors frequently stem from malformed configuration files or incorrect usage of helper functions.  Knowing <em>why</em> these errors surface helps prevent them and speeds up debugging.</p>
+<p>The function <code class="docutils literal notranslate"><span class="pre">load_clizard_file</span></code> is responsible for reading the <cite>.clizard</cite> JSON file.  If the file contains invalid JSON, the parser will catch the exception and return an empty dictionary instead of crashing.  This silent failure can lead to subtle bugs where downstream code assumes configuration values exist.  The helper <code class="docutils literal notranslate"><span class="pre">ensure_clizard_file</span></code> guarantees that a valid file is present by creating one with default settings if it does not already exist.</p>
+<p>A typical error message looks like:</p>
+<p><code class="docutils literal notranslate"><span class="pre">`</span>
+<span class="pre">ValueError:</span> <span class="pre">Invalid</span> <span class="pre">JSON</span> <span class="pre">in</span> <span class="pre">.clizard</span>
+<span class="pre">`</span></code></p>
+<p>but the library swallows this and proceeds, which can be confusing for users who expect an explicit failure.  The recommended practice is to call <code class="docutils literal notranslate"><span class="pre">ensure_clizard_file</span></code> before any operation that relies on configuration data.</p>
+<p>The following table documents the key parameters of these functions:</p>
+<table class="docutils align-default" id="id2">
+<caption><span class="caption-text">Runtime error‑related functions</span><a class="headerlink" href="#id2" title="Link to this table"></a></caption>
+<colgroup>
+<col style="width: 30.0%" />
+<col style="width: 70.0%" />
+</colgroup>
+<thead>
+<tr class="row-odd"><th class="head"><p>Function</p></th>
+<th class="head"><p>Parameter</p></th>
+</tr>
+</thead>
+<tbody>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">load_clizard_file</span></code></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">repo_path</span></code> (str, default: <code class="docutils literal notranslate"><span class="pre">&quot;.&quot;</span></code>)
+Directory to look for .clizard file; defaults to current working directory.</p></td>
+</tr>
+<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">ensure_clizard_file</span></code></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">repo_path</span></code> (str, default: <code class="docutils literal notranslate"><span class="pre">&quot;.&quot;</span></code>)
+Same as above.</p></td>
+</tr>
+</tbody>
+</table>
+<p>Below is a minimal example that demonstrates how to safely load configuration data:</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span><span class="w"> </span><span class="nn">clizard</span><span class="w"> </span><span class="kn">import</span> <span class="n">load_clizard_file</span><span class="p">,</span> <span class="n">ensure_clizard_file</span>
+
+<span class="c1"># Ensure a .clizard file exists before reading</span>
+<span class="n">ensure_clizard_file</span><span class="p">(</span><span class="s1">&#39;.&#39;</span><span class="p">)</span>
+<span class="n">config</span> <span class="o">=</span> <span class="n">load_clizard_file</span><span class="p">(</span><span class="s1">&#39;.&#39;</span><span class="p">)</span>
+<span class="nb">print</span><span class="p">(</span><span class="n">config</span><span class="p">)</span>
+</pre></div>
+</div>
+<p>If the output is an empty dictionary, run <code class="docutils literal notranslate"><span class="pre">ensure_clizard_file('.')</span></code> to generate a template and then edit it manually or via the CLI.</p>
+</section>
+<section id="parameter-choices">
+<h3>Parameter Choices<a class="headerlink" href="#parameter-choices" title="Link to this heading"></a></h3>
+<p>Choosing the right command‑line options can dramatically simplify your workflow.  The helper function <code class="docutils literal notranslate"><span class="pre">auto_cli</span></code> bridges argparse parsers with clizard’s generic CLI infrastructure, automatically registering common commands such as <cite>/run</cite> when a <cite>main()</cite> function is detected.</p>
+<p>The first parameter, <code class="docutils literal notranslate"><span class="pre">parser</span></code>, accepts an existing <code class="xref py py-class docutils literal notranslate"><span class="pre">argparse.ArgumentParser</span></code>.  If you pass <code class="docutils literal notranslate"><span class="pre">None</span></code>, the helper will create a new parser internally.  This flexibility allows you to integrate clizard into complex applications without rewriting your argument handling logic.</p>
+<p>The second parameter, <code class="docutils literal notranslate"><span class="pre">handler</span></code>, is a callable that receives free‑text input from the user.  By default it simply echoes back the prompt, but you can supply any custom function—such as a language model inference routine—to process the input and produce output on the fly.</p>
+<p>Because clizard stores configuration in JSON files, you can override defaults at runtime with <code class="docutils literal notranslate"><span class="pre">--config</span></code>.  This is especially useful when experimenting with different models or settings without modifying source code.</p>
+<p>The table below lists the parameters for <code class="docutils literal notranslate"><span class="pre">auto_cli</span></code>:</p>
+<table class="docutils align-default" id="id3">
+<caption><span class="caption-text">auto_cli parameters</span><a class="headerlink" href="#id3" title="Link to this table"></a></caption>
+<colgroup>
+<col style="width: 30.0%" />
+<col style="width: 70.0%" />
+</colgroup>
+<thead>
+<tr class="row-odd"><th class="head"><p>Parameter</p></th>
+<th class="head"><p>Type / Default / Description</p></th>
+</tr>
+</thead>
+<tbody>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">parser</span></code></p></td>
+<td><p><code class="xref py py-class docutils literal notranslate"><span class="pre">argparse.ArgumentParser</span></code>, default: <code class="docutils literal notranslate"><span class="pre">None</span></code>
+Existing parser to wrap; if None, a new one is created.</p></td>
+</tr>
+<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">handler</span></code></p></td>
+<td><p>callable, default: <code class="docutils literal notranslate"><span class="pre">None</span></code>
+Custom function for free‑text input; defaults to echoing the prompt.</p></td>
+</tr>
+</tbody>
+</table>
+<p>Below is an example that shows how to use <code class="docutils literal notranslate"><span class="pre">auto_cli</span></code> in a simple script:</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">import</span><span class="w"> </span><span class="nn">argparse</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">clizard</span><span class="w"> </span><span class="kn">import</span> <span class="n">auto_cli</span>
+
+<span class="k">def</span><span class="w"> </span><span class="nf">my_handler</span><span class="p">(</span><span class="n">text</span><span class="p">):</span>
+    <span class="c1"># Simple echo handler – replace with your own logic</span>
+    <span class="k">return</span> <span class="sa">f</span><span class="s2">&quot;You said: </span><span class="si">{</span><span class="n">text</span><span class="si">}</span><span class="s2">&quot;</span>
+
+<span class="n">parser</span> <span class="o">=</span> <span class="n">argparse</span><span class="o">.</span><span class="n">ArgumentParser</span><span class="p">(</span><span class="n">description</span><span class="o">=</span><span class="s2">&quot;Demo CLI&quot;</span><span class="p">)</span>
+<span class="n">auto_cli</span><span class="p">(</span><span class="n">parser</span><span class="o">=</span><span class="n">parser</span><span class="p">,</span> <span class="n">handler</span><span class="o">=</span><span class="n">my_handler</span><span class="p">)</span>
+
+<span class="n">args</span> <span class="o">=</span> <span class="n">parser</span><span class="o">.</span><span class="n">parse_args</span><span class="p">()</span>
+<span class="nb">print</span><span class="p">(</span><span class="s2">&quot;CLI started successfully.&quot;</span><span class="p">)</span>
+</pre></div>
+</div>
+</section>
+</section>
+</section>
+
+
+           </div>
+          </div>
+          <footer>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>&#169; Copyright 2022, Erdogan Taskesen.</p>
+  </div>
+
+  Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
+    provided by <a href="https://readthedocs.org">Read the Docs</a>.
+   
+
+</footer>
+        </div>
+      </div>
+    </section>
+  </div>
+  <script>
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script> 
+
+</body>
+</html>

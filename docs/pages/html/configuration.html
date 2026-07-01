@@ -1,0 +1,253 @@
+
+
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" data-content_root="./">
+<head>
+  <meta charset="utf-8" /><meta name="viewport" content="width=device-width, initial-scale=1" />
+
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>configuration &mdash; clizard clizard documentation</title>
+      <link rel="stylesheet" type="text/css" href="_static/pygments.css?v=03e43079" />
+      <link rel="stylesheet" type="text/css" href="_static/css/theme.css?v=9edc463e" />
+      <link rel="stylesheet" type="text/css" href="_static/css/custom.css?v=e0179649" />
+
+  
+      <script src="_static/jquery.js?v=5d32c60e"></script>
+      <script src="_static/_sphinx_javascript_frameworks_compat.js?v=2cd50e6c"></script>
+      <script src="_static/documentation_options.js?v=a29ca5f1"></script>
+      <script src="_static/doctools.js?v=fd6eb6e6"></script>
+      <script src="_static/sphinx_highlight.js?v=6ffebe34"></script>
+    <script src="_static/js/theme.js"></script>
+    <link rel="index" title="Index" href="genindex.html" />
+    <link rel="search" title="Search" href="search.html" />
+    <link rel="prev" title="FAQ" href="FAQ.html" /> 
+</head>
+
+<body class="wy-body-for-nav"> 
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+
+          
+          
+          <a href="index.html" class="icon icon-home">
+            clizard
+          </a>
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" aria-label="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+        </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+    
+              <p class="caption" role="heading"><span class="caption-text">Installation</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="Installation.html">Installation</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Installation.html#uninstall">Uninstall</a></li>
+</ul>
+<p class="caption" role="heading"><span class="caption-text">Summary</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="Summary.html">Summary</a></li>
+</ul>
+<p class="caption" role="heading"><span class="caption-text">Examples</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="Examples.html">Examples</a></li>
+</ul>
+<p class="caption" role="heading"><span class="caption-text">FAQ</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="FAQ.html">FAQ</a></li>
+</ul>
+<p class="caption" role="heading"><span class="caption-text">Configuration</span></p>
+<ul class="current">
+<li class="toctree-l1 current"><a class="current reference internal" href="#">configuration</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="#load-clizard-file">load_clizard_file</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#save-clizard-file">save_clizard_file</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#ensure-clizard-file">ensure_clizard_file</a></li>
+</ul>
+</li>
+</ul>
+
+    <a href= "genindex.html">Index</a>
+  
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap"><nav class="wy-nav-top" aria-label="Mobile navigation menu" >
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="index.html">clizard</a>
+      </nav>
+
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          <div role="navigation" aria-label="Page navigation">
+  <ul class="wy-breadcrumbs">
+      <li><a href="index.html" class="icon icon-home" aria-label="Home"></a></li>
+      <li class="breadcrumb-item active">configuration</li>
+      <li class="wy-breadcrumbs-aside">
+            <a href="_sources/configuration.rst.txt" rel="nofollow"> View page source</a>
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+             
+  <section id="configuration">
+<h1>configuration<a class="headerlink" href="#configuration" title="Link to this heading"></a></h1>
+<p>The <code class="xref py py-mod docutils literal notranslate"><span class="pre">clizard_file</span></code> module is the single source of truth for persisting project‑specific settings in a lightweight JSON file named <code class="docutils literal notranslate"><span class="pre">.clizard</span></code>.  It lives at the root of every repository that uses the clizard scaffolding tools and contains information such as the application name, documentation URL, ASCII art banner, accent colour, tips, and an updates log.  The design goal is to keep the API tiny yet robust: callers can load or write configuration without worrying about file‑system errors or malformed data, while still having the flexibility to override defaults on a per‑run basis.</p>
+<p>The module exposes three helper functions – <code class="xref py py-func docutils literal notranslate"><span class="pre">load_clizard_file()</span></code>, <code class="xref py py-func docutils literal notranslate"><span class="pre">save_clizard_file()</span></code> and <code class="xref py py-func docutils literal notranslate"><span class="pre">ensure_clizard_file()</span></code>.  All three operate purely on I/O and simple dictionary manipulation; they do not perform semantic validation or business logic.  This separation of concerns allows higher‑level tooling (such as documentation generators, CI pipelines or CLI commands) to focus on their domain while delegating configuration persistence to a well‑tested, fault‑tolerant layer.</p>
+<p>The functions are intentionally forgiving: any exception raised during file access is caught and logged, but the caller receives a sane default value instead of an error propagating up the stack.  This behaviour guarantees that downstream code can always merge the returned dictionary with its own defaults without wrapping every call in <code class="docutils literal notranslate"><span class="pre">try</span></code>/<code class="docutils literal notranslate"><span class="pre">except</span></code> blocks.  The trade‑off is that silent failures may hide configuration problems; however, the module logs warnings to the standard library’s <code class="xref py py-mod docutils literal notranslate"><span class="pre">logging</span></code> system so that developers are still alerted when something goes wrong.</p>
+<section id="load-clizard-file">
+<h2>load_clizard_file<a class="headerlink" href="#load-clizard-file" title="Link to this heading"></a></h2>
+<p>The <code class="xref py py-func docutils literal notranslate"><span class="pre">load_clizard_file()</span></code> function is the entry point for reading an existing <code class="docutils literal notranslate"><span class="pre">.clizard</span></code> file from disk.  It accepts a single path argument that points to the root of the repository or any subdirectory containing the configuration.  Internally, it uses <code class="xref py py-class docutils literal notranslate"><span class="pre">pathlib.Path</span></code> to construct the absolute file location and then attempts to open and parse the JSON payload.  If the file is missing, unreadable due to permission issues, or contains syntactically invalid JSON, the function swallows the exception and returns an empty dictionary instead of propagating an error.  This design choice ensures that callers can safely merge the returned configuration with defaults without having to wrap every load in a try/except block.</p>
+<p>The function is deliberately lightweight: it does not perform any validation beyond JSON decoding.  Any semantic checks – such as verifying required keys or value types – are left to higher‑level code that consumes the dictionary.  By returning an empty dict on failure, the function guarantees that downstream logic will always receive a mapping object, simplifying control flow and reducing boilerplate.</p>
+<p>The return value is always a plain <code class="xref py py-class docutils literal notranslate"><span class="pre">dict</span></code> instance, which callers can safely modify or merge with other configuration sources.  The function also logs a warning via the standard library’s <code class="docutils literal notranslate"><span class="pre">logging</span></code> module when it encounters an error, providing visibility into silent failures without interrupting execution.</p>
+<table class="docutils align-default" id="id3">
+<caption><span class="caption-text">Parameters for <code class="xref py py-func docutils literal notranslate"><span class="pre">load_clizard_file()</span></code></span><a class="headerlink" href="#id3" title="Link to this table"></a></caption>
+<colgroup>
+<col style="width: 22.2%" />
+<col style="width: 11.1%" />
+<col style="width: 66.7%" />
+</colgroup>
+<thead>
+<tr class="row-odd"><th class="head"><p>Name</p></th>
+<th class="head"><p>Type</p></th>
+<th class="head"><p>Description</p></th>
+</tr>
+</thead>
+<tbody>
+<tr class="row-even"><td><p>repo_path</p></td>
+<td><p>str</p></td>
+<td><p>Directory containing <code class="docutils literal notranslate"><span class="pre">.clizard</span></code> (default current working directory)</p></td>
+</tr>
+</tbody>
+</table>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span><span class="w"> </span><span class="nn">clizard_file</span><span class="w"> </span><span class="kn">import</span> <span class="n">load_clizard_file</span>
+
+<span class="c1"># Load configuration from a specific repository path.</span>
+<span class="n">config</span> <span class="o">=</span> <span class="n">load_clizard_file</span><span class="p">(</span><span class="s2">&quot;/path/to/repo&quot;</span><span class="p">)</span>
+<span class="nb">print</span><span class="p">(</span><span class="n">config</span><span class="p">)</span>
+</pre></div>
+</div>
+</section>
+<section id="save-clizard-file">
+<h2>save_clizard_file<a class="headerlink" href="#save-clizard-file" title="Link to this heading"></a></h2>
+<p>The <code class="xref py py-func docutils literal notranslate"><span class="pre">save_clizard_file()</span></code> helper serializes an arbitrary dictionary to JSON and writes it to the <code class="docutils literal notranslate"><span class="pre">.clizard</span></code> file in the specified repository directory.  The function enforces a two‑space indentation level, which makes the output human‑readable while keeping the file compact enough for version control diffing.  It overwrites any existing file without prompting or raising an exception, thereby guaranteeing that callers always end up with the latest configuration state.</p>
+<p>The implementation uses <code class="xref py py-class docutils literal notranslate"><span class="pre">pathlib.Path</span></code> to resolve the target path and ensures that parent directories exist by calling <code class="docutils literal notranslate"><span class="pre">mkdir(parents=True,</span> <span class="pre">exist_ok=True)</span></code> before writing.  The function returns the resolved <code class="xref py py-class docutils literal notranslate"><span class="pre">Path</span></code> object pointing at the written file, allowing callers to perform further operations (e.g., adding the file to a git index) if desired.</p>
+<p>Because JSON serialization can fail for non‑serializable objects, the function expects that the input dictionary contains only primitive types (strings, numbers, booleans, lists, and nested dictionaries).  If an unsupported type is encountered, <code class="docutils literal notranslate"><span class="pre">json.dumps</span></code> will raise a <code class="xref py py-class docutils literal notranslate"><span class="pre">TypeError</span></code>, which propagates to the caller – this is intentional, as silently dropping data would be more harmful.</p>
+<table class="docutils align-default" id="id4">
+<caption><span class="caption-text">Parameters for <code class="xref py py-func docutils literal notranslate"><span class="pre">save_clizard_file()</span></code></span><a class="headerlink" href="#id4" title="Link to this table"></a></caption>
+<colgroup>
+<col style="width: 22.2%" />
+<col style="width: 11.1%" />
+<col style="width: 66.7%" />
+</colgroup>
+<thead>
+<tr class="row-odd"><th class="head"><p>Name</p></th>
+<th class="head"><p>Type</p></th>
+<th class="head"><p>Description</p></th>
+</tr>
+</thead>
+<tbody>
+<tr class="row-even"><td><p>data</p></td>
+<td><p>dict</p></td>
+<td><p>Configuration dictionary to persist</p></td>
+</tr>
+<tr class="row-odd"><td><p>repo_path</p></td>
+<td><p>str</p></td>
+<td><p>Directory where <code class="docutils literal notranslate"><span class="pre">.clizard</span></code> will be written</p></td>
+</tr>
+</tbody>
+</table>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span><span class="w"> </span><span class="nn">clizard_file</span><span class="w"> </span><span class="kn">import</span> <span class="n">save_clizard_file</span>
+
+<span class="n">config</span> <span class="o">=</span> <span class="p">{</span>
+    <span class="s2">&quot;app_name&quot;</span><span class="p">:</span> <span class="s2">&quot;MyApp&quot;</span><span class="p">,</span>
+    <span class="s2">&quot;docs_url&quot;</span><span class="p">:</span> <span class="s2">&quot;https://myapp.readthedocs.io&quot;</span>
+<span class="p">}</span>
+<span class="n">path</span> <span class="o">=</span> <span class="n">save_clizard_file</span><span class="p">(</span><span class="n">config</span><span class="p">,</span> <span class="n">repo_path</span><span class="o">=</span><span class="s2">&quot;/my/project&quot;</span><span class="p">)</span>
+<span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Configuration written to </span><span class="si">{</span><span class="n">path</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+</pre></div>
+</div>
+</section>
+<section id="ensure-clizard-file">
+<h2>ensure_clizard_file<a class="headerlink" href="#ensure-clizard-file" title="Link to this heading"></a></h2>
+<p>The <code class="xref py py-func docutils literal notranslate"><span class="pre">ensure_clizard_file()</span></code> function is the most feature‑rich helper in this module.  It guarantees that a valid <code class="docutils literal notranslate"><span class="pre">.clizard</span></code> file exists at the target location, creating one with sensible defaults if necessary.  The function first attempts to load an existing configuration using <code class="xref py py-func docutils literal notranslate"><span class="pre">load_clizard_file()</span></code>.  If the result is empty (indicating absence or corruption), it constructs a default dictionary containing keys such as <code class="docutils literal notranslate"><span class="pre">app_name</span></code>, <code class="docutils literal notranslate"><span class="pre">ascii_art</span></code> (set to <code class="xref py py-data docutils literal notranslate"><span class="pre">DEFAULT_ASCII</span></code>), <code class="docutils literal notranslate"><span class="pre">docs_url</span></code>, <code class="docutils literal notranslate"><span class="pre">accent_color</span></code> (defaulting to <code class="docutils literal notranslate"><span class="pre">#d97757</span></code>), a list of <code class="docutils literal notranslate"><span class="pre">tips</span></code>, and an empty <code class="docutils literal notranslate"><span class="pre">updates</span></code> section.</p>
+<p>After establishing the base configuration, the function merges any keyword arguments supplied via <code class="docutils literal notranslate"><span class="pre">**overrides</span></code> into the dictionary.  This merge is performed in place so that callers can supply only the values they wish to change while inheriting all other defaults.  The merged configuration is then written back to disk using <code class="xref py py-func docutils literal notranslate"><span class="pre">save_clizard_file()</span></code>, ensuring that the file on disk reflects the caller’s intent.</p>
+<p>The function returns the final configuration dictionary, allowing callers to inspect or further manipulate it before use.  Because the merge operation overwrites existing keys with supplied values, callers can selectively update parts of the configuration without having to rebuild the entire mapping manually.  The design choice to perform merging in memory rather than on disk keeps file I/O minimal and reduces race conditions when multiple processes might attempt to write concurrently.</p>
+<table class="docutils align-default" id="id5">
+<caption><span class="caption-text">Parameters for <code class="xref py py-func docutils literal notranslate"><span class="pre">ensure_clizard_file()</span></code></span><a class="headerlink" href="#id5" title="Link to this table"></a></caption>
+<colgroup>
+<col style="width: 22.2%" />
+<col style="width: 11.1%" />
+<col style="width: 66.7%" />
+</colgroup>
+<thead>
+<tr class="row-odd"><th class="head"><p>Name</p></th>
+<th class="head"><p>Type</p></th>
+<th class="head"><p>Description</p></th>
+</tr>
+</thead>
+<tbody>
+<tr class="row-even"><td><p>repo_path</p></td>
+<td><p>str</p></td>
+<td><p>Directory where <code class="docutils literal notranslate"><span class="pre">.clizard</span></code> should exist (default current working directory)</p></td>
+</tr>
+<tr class="row-odd"><td><p><a href="#id1"><span class="problematic" id="id2">**</span></a>overrides</p></td>
+<td><p>dict</p></td>
+<td><p>Keyword arguments that override default configuration values</p></td>
+</tr>
+</tbody>
+</table>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span><span class="w"> </span><span class="nn">clizard_file</span><span class="w"> </span><span class="kn">import</span> <span class="n">ensure_clizard_file</span>
+
+<span class="c1"># Ensure a .clizard file exists, overriding the app name.</span>
+<span class="n">config</span> <span class="o">=</span> <span class="n">ensure_clizard_file</span><span class="p">(</span><span class="n">repo_path</span><span class="o">=</span><span class="s2">&quot;/my/project&quot;</span><span class="p">,</span> <span class="n">app_name</span><span class="o">=</span><span class="s2">&quot;SuperApp&quot;</span><span class="p">)</span>
+<span class="nb">print</span><span class="p">(</span><span class="s2">&quot;Final configuration:&quot;</span><span class="p">,</span> <span class="n">config</span><span class="p">)</span>
+</pre></div>
+</div>
+<hr>
+<center>
+        <script async src="https://media.ethicalads.io/media/client/ethicalads.min.js"></script>
+        <!-- Show an image ad -->
+        <!-- <div data-ea-publisher="erdogantgithubio" data-ea-type="image"></div> -->
+        <div data-ea-publisher="erdogantgithubio" data-ea-type="image" data-ea-style="stickybox"></div>
+</center>
+<hr></section>
+</section>
+
+
+           </div>
+          </div>
+          <footer><div class="rst-footer-buttons" role="navigation" aria-label="Footer">
+        <a href="FAQ.html" class="btn btn-neutral float-left" title="FAQ" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left" aria-hidden="true"></span> Previous</a>
+    </div>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>&#169; Copyright 2022, Erdogan Taskesen.</p>
+  </div>
+
+  Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
+    provided by <a href="https://readthedocs.org">Read the Docs</a>.
+   
+
+</footer>
+        </div>
+      </div>
+    </section>
+  </div>
+  <script>
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script> 
+
+</body>
+</html>
