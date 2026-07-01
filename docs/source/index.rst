@@ -8,7 +8,7 @@ clizard's documentation!
 *clizard* — Python library by erdogant.
 
 
-Clizard is a lightweight Python toolkit that streamlines the creation and management of command‑line interfaces (CLIs). It automatically generates common argparse options—such as verbosity, configuration file paths, help flags—and wraps them in a rich‑based chat CLI for interactive use. By exposing only a small API surface around `argparse`, developers can focus on business logic while still delivering polished user experiences. Core utilities include automatic CLI construction from existing parsers (`auto_cli`), JSON‑backed settings storage (`Config`), and decorators to register slash commands (`command`). The library also provides helpers for loading configuration files, merging defaults, and casting command‑line values to the correct types. Clizard is ideal for projects that need a consistent, minimal boilerplate CLI without sacrificing flexibility or interactivity.
+Clizard is a lightweight Python toolkit that automates the creation and management of command‑line interfaces (CLIs). It assumes most CLI applications share common options—verbosity, configuration file paths, help flags—and generates these automatically with minimal boilerplate around `argparse`. Developers can focus on business logic while still delivering a polished user experience. The library provides utilities to build parsers (`build_parser`), auto‑generate rich‑based chat CLIs (`auto_cli`, `GenericCLI`), load and merge configuration files (`load_clizard_file`, `ensure_clizard_file`), and expose settings via a JSON‑backed store (`Config`). It also supports decorator‑style command registration (`@command`) for slash commands, automatic type casting of CLI arguments, and helper functions to locate main modules or Snakemake config files. Clizard’s goal is to streamline CLI development, reduce repetitive code, and enable consistent, maintainable interfaces across Python projects.
 
 
 .. code-block:: console
@@ -37,13 +37,6 @@ Content
 
 .. toctree::
    :maxdepth: 1
-   :caption: Algorithm
-
-   Algorithm
-
-
-.. toctree::
-   :maxdepth: 1
    :caption: Examples
 
    Examples
@@ -54,6 +47,13 @@ Content
    :caption: FAQ
 
    FAQ
+
+
+.. toctree::
+   :maxdepth: 1
+   :caption: Configuration
+
+   configuration
 
 
 Indices and tables

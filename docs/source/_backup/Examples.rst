@@ -1,66 +1,83 @@
-Quickstart
-################
+.. list-table:: Parameters of :func:`run`
+   :widths: 15 10 65
+   :header-rows: 1
 
-A quick example how to learn a model on a given dataset.
+   * - Name
+     - Type
+     - Description
+   * - username
+     - ``str``
+     - Target repository account identifier (e.g., PyPI username).
+   * - package
+     - ``str``
+     - Name, version specifier, or local path of the artifact to release.
+   * - clean
+     - ``bool | None``
+     - Flag to purge build directories before execution. Optional; defaults to ``None``. After conversion from an integer argument, values `0` and `1` are interpreted as ``False`` and ``True`` respectively.
+   * - install
+     - ``bool | None``
+     - Flag to resolve and install project dependencies first. Optional; defaults to ``None``. Integer arguments `0` and `1` are converted to ``False`` and ``True``.
+   * - twine
+     - ``str | None``
+     - Path to a custom twine executable. Optional; defaults to ``None``.
+   * - verbose
+     - ``int | None``
+     - Verbosity level for output information. Optional; defaults to ``None``.
 
+.. code-block:: py
+    import argparse
+    from clizard import auto_cli
+    from release_tool import run
 
-.. code:: python
+    def main():
+        parser = argparse.ArgumentParser()
+        parser.add_argument("-u", "--username", type=str, help="Username on Github/Gitlab…")
+        parser.add_argument("-p", "--package", type=str, help="Package name to be released.")
+        parser.add_argument(
+            "-c",
+            "--clean",
+            type=int,
+            choices=[0, 1],
+            help="Remove local builds: [dist], [build] and [x.egg-info].",
+        )
+        parser.add_argument(
+            "-i",
+            "--install",
+            type=int,
+            choices=[0, 1],
+            help="Install this version on the local machine.",
+        )
+        parser.add_argument(
+            "-t",
+            "--twine",
+            type=str,
+            help="Path to twine in case you have a custom build.",
+        )
+        parser.add_argument(
+            "-v",
+            "--verbosity",
+            type=int,
+            choices=[0, 1, 2, 3, 4, 5],
+            help="Verbosity level; higher numbers provide more information.",
+        )
 
-    # Import library
-    import clizard
+        args = parser.parse_args()
 
-    # Retrieve URLs of malicous and normal urls:
-    X, y = clizard.load_example()
+        def run_callback(cli):
+            s = cli.config.settings
+            run(
+                username=s["username"],
+                package=s["package"],
+                clean=bool(s["clean"]),
+                install=bool(s["install"]),
+                twine=s["twine"],
+                verbose=s["verbosity"],
+            )
 
-    # Learn model on the data
-    model = clizard.fit_transform(X, y, pos_label='bad')
+        cli = auto_cli(parser, args=args, app_name="ReleaseTool", run_callback=run_callback)
+        cli.run()
 
-    # Plot the model performance
-    results = clizard.plot(model)
-
-
-
-Learn new model with gridsearch and train-test set
-################################################################
-
-AAA
-
-.. code:: python
-
-    # Import library
-    import clizard
-
-    # Load example data set    
-    X,y_true = clizard.load_example()
-
-    # Retrieve URLs of malicous and normal urls:
-    model = clizard.fit_transform(X, y_true, pos_label='bad', train_test=True, gridsearch=True)
-
-    # The test error will be shown
-    results = clizard.plot(model)
-
-
-Learn new model on the entire data set
-################################################
-
-BBBB
-
-
-.. code:: python
-
-    # Import library
-    import clizard
-
-    # Load example data set    
-    X,y_true = clizard.load_example()
-
-    # Retrieve URLs of malicous and normal urls:
-    model = clizard.fit_transform(X, y_true, pos_label='bad', train_test=False, gridsearch=True)
-
-    # The train error will be shown. Such results are heavily biased as the model also learned on this set of data
-    results = clizard.plot(model)
-
-
-
+    if __name__ == "__main__":
+        main()
 
 .. include:: add_bottom.add

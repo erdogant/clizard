@@ -9,6 +9,7 @@ __pycache__/
 # ignore dirs
 libraries/
 .pypirc
+.sphinxbot
 
 # Distribution / packaging
 .pylint.*
