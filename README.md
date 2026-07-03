@@ -16,8 +16,8 @@
 [![Donate](https://img.shields.io/badge/Support%20this%20project-grey.svg?logo=github%20sponsors)](https://erdogant.github.io/clizard/pages/html/Documentation.html#)
 
 <div>
-<a href="https://erdogant.github.io/clizard/"><img src="https://raw.githubusercontent.com/erdogant/clizard/main/docs/figs/logo.png" width="150" align="left" /></a>
-Clizard is a lightweight Python toolkit that streamlines the creation and management of command‑line interfaces (CLIs).  ⭐️Star it if you like it⭐️ 
+<a href="https://erdogant.github.io/clizard/"><img src="https://raw.githubusercontent.com/erdogant/clizard/main/docs/figs/logo.png" width="75" align="left" /></a>
+Clizard is a lightweight Python toolkit that streamlines the creation and management of command‑line interfaces (CLIs).
 </div>
 
 
