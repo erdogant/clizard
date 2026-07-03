@@ -10,9 +10,6 @@
 [![Forks](https://img.shields.io/github/forks/erdogant/clizard.svg)](https://github.com/erdogant/clizard/network)
 [![Issues](https://img.shields.io/github/issues/erdogant/clizard.svg)](https://github.com/erdogant/clizard/issues)
 [![Project Status](http://www.repostatus.org/badges/latest/active.svg)](http://www.repostatus.org/#active)
-[![DOI](https://zenodo.org/badge/231843440.svg)](https://zenodo.org/badge/latestdoi/231843440)
-[![Medium](https://img.shields.io/badge/Medium-Blog-black)](https://erdogant.github.io/clizard/pages/html/Documentation.html#medium-blog)
-[![Colab](https://colab.research.google.com/assets/colab-badge.svg)](https://erdogant.github.io/clizard/pages/html/Documentation.html#colab-notebook)
 [![Donate](https://img.shields.io/badge/Support%20this%20project-grey.svg?logo=github%20sponsors)](https://erdogant.github.io/clizard/pages/html/Documentation.html#)
 
 <div>
