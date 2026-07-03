@@ -4,8 +4,8 @@
 [![Pypi](https://img.shields.io/pypi/v/clizard)](https://pypi.org/project/clizard/)
 [![Docs](https://img.shields.io/badge/Sphinx-Docs-Green)](https://erdogant.github.io/clizard/)
 [![LOC](https://sloc.xyz/github/erdogant/clizard/?category=code)](https://github.com/erdogant/clizard/)
-[![Downloads](https://static.pepy.tech/personalized-badge/clizard?period=month&units=international_system&left_color=grey&right_color=brightgreen&left_text=PyPI%20downloads/month)](https://pepy.tech/project/clizard)
-[![Downloads](https://static.pepy.tech/personalized-badge/clizard?period=total&units=international_system&left_color=grey&right_color=brightgreen&left_text=Downloads)](https://pepy.tech/project/clizard)
+[![Downloads](https://static.pepy.tech/personalized-badge/clizard?period=month&units=international_system&left_color=grey&right_color=brightgreen&left_text=PyPI%20downloads/month)](https://pepy.tech/p[...]
+[![Downloads](https://static.pepy.tech/personalized-badge/clizard?period=total&units=international_system&left_color=grey&right_color=brightgreen&left_text=Downloads)](https://pepy.tech/project/clizar[...]
 [![License](https://img.shields.io/badge/license-MIT-green.svg)](https://github.com/erdogant/clizard/blob/master/LICENSE)
 [![Forks](https://img.shields.io/github/forks/erdogant/clizard.svg)](https://github.com/erdogant/clizard/network)
 [![Issues](https://img.shields.io/github/issues/erdogant/clizard.svg)](https://github.com/erdogant/clizard/issues)
@@ -16,8 +16,8 @@
 [![Donate](https://img.shields.io/badge/Support%20this%20project-grey.svg?logo=github%20sponsors)](https://erdogant.github.io/clizard/pages/html/Documentation.html#)
 
 <div>
-<a href="https://erdogant.github.io/clizard/"><img src="https://github.com/erdogant/clizard/blob/master/docs/figs/logo.png" width="150" align="left" /></a>
-Clizard is a lightweight Python toolkit that streamlines the creation and management of command‑line interfaces (CLIs). It automatically generates common argparse options—such as verbosity, configuration file paths, help flags—and wraps them in a rich‑based chat CLI for interactive use. By providing utilities like `build_parser`, `auto_cli`, and decorators such as `command`, developers can focus on business logic while still delivering polished, user‑friendly CLIs with minimal boilerplate. The library also offers JSON‑backed configuration handling (`Config`), automatic loading of `.clizard` files, and helper functions to discover main entry points or Snakemake configs. Clizard’s goal is to reduce repetitive CLI code, improve consistency across projects, and enable rapid prototyping of command‑line tools with a clean, declarative API. ⭐️Star it if you like it⭐️
+<a href="https://erdogant.github.io/clizard/"><img src="https://raw.githubusercontent.com/erdogant/clizard/main/docs/figs/logo.png" width="150" align="left" /></a>
+Clizard is a lightweight Python toolkit that streamlines the creation and management of command‑line interfaces (CLIs). It automatically generates common argparse options—such as verbosity, config[...]
 </div>
 
 ---
@@ -68,5 +68,5 @@ This project is licensed under the MIT License — see the [LICENSE](https://git
 * Contributions are welcome.
 * Yes! This library is entirely **free**, but it runs on coffee! :) Feel free to support with a <a href="https://erdogant.github.io/donate/?currency=USD&amount=5">Coffee</a>.
 
-[![Buy me a coffee](https://img.buymeacoffee.com/button-api/?text=Buy+me+a+coffee&emoji=&slug=erdogant&button_colour=FFDD00&font_colour=000000&font_family=Cookie&outline_colour=000000&coffee_colour=ffffff)](https://www.buymeacoffee.com/erdogant)
+[![Buy me a coffee](https://img.buymeacoffee.com/button-api/?text=Buy+me+a+coffee&emoji=&slug=erdogant&button_colour=FFDD00&font_colour=000000&font_family=Cookie&outline_colour=000000&coffee_colour=ff[...]
 
