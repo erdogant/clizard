@@ -17,8 +17,9 @@
 
 <div>
 <a href="https://erdogant.github.io/clizard/"><img src="https://raw.githubusercontent.com/erdogant/clizard/main/docs/figs/logo.png" width="150" align="left" /></a>
-Clizard is a lightweight Python toolkit that streamlines the creation and management of command‑line interfaces (CLIs). 
+Clizard is a lightweight Python toolkit that streamlines the creation and management of command‑line interfaces (CLIs).  ⭐️Star it if you like it⭐️ 
 </div>
+
 
 ---
 
