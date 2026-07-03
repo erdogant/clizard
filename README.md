@@ -4,8 +4,8 @@
 [![Pypi](https://img.shields.io/pypi/v/clizard)](https://pypi.org/project/clizard/)
 [![Docs](https://img.shields.io/badge/Sphinx-Docs-Green)](https://erdogant.github.io/clizard/)
 [![LOC](https://sloc.xyz/github/erdogant/clizard/?category=code)](https://github.com/erdogant/clizard/)
-[![Downloads](https://static.pepy.tech/personalized-badge/clizard?period=month&units=international_system&left_color=grey&right_color=brightgreen&left_text=PyPI%20downloads/month)](https://pepy.tech/p[...]
-[![Downloads](https://static.pepy.tech/personalized-badge/clizard?period=total&units=international_system&left_color=grey&right_color=brightgreen&left_text=Downloads)](https://pepy.tech/project/clizar[...]
+[![Downloads](https://static.pepy.tech/personalized-badge/clizard?period=month&units=international_system&left_color=grey&right_color=brightgreen&left_text=PyPI%20downloads/month)](https://pepy.tech/project/clizard)
+[![Downloads](https://static.pepy.tech/personalized-badge/clizard?period=total&units=international_system&left_color=grey&right_color=brightgreen&left_text=Downloads)](https://pepy.tech/project/clizard)
 [![License](https://img.shields.io/badge/license-MIT-green.svg)](https://github.com/erdogant/clizard/blob/master/LICENSE)
 [![Forks](https://img.shields.io/github/forks/erdogant/clizard.svg)](https://github.com/erdogant/clizard/network)
 [![Issues](https://img.shields.io/github/issues/erdogant/clizard.svg)](https://github.com/erdogant/clizard/issues)
@@ -17,7 +17,7 @@
 
 <div>
 <a href="https://erdogant.github.io/clizard/"><img src="https://raw.githubusercontent.com/erdogant/clizard/main/docs/figs/logo.png" width="150" align="left" /></a>
-Clizard is a lightweight Python toolkit that streamlines the creation and management of command‑line interfaces (CLIs). It automatically generates common argparse options—such as verbosity, config[...]
+Clizard is a lightweight Python toolkit that streamlines the creation and management of command‑line interfaces (CLIs). 
 </div>
 
 ---
