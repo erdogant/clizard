@@ -14,9 +14,10 @@ clizard interactive interface. Re-run `clizard --scaffold` to regenerate.
 import sys
 from pathlib import Path
 
-sys.path.insert(0, str(Path(__file__).parent / "{entry_dir}"))
+# sys.path.insert(0, str(Path(__file__).parent / "{entry_dir}"))
+sys.path.insert(0, str(Path(__file__).parent.parent.resolve()))
 
-from {entry_module} import main as _original_main
+from {entry_module}.{entry_module} import main as _original_main
 # Prefer the local `clizard` package if present; fall back to `genericli` for
 # standalone generated scripts that expect that external package.
 
