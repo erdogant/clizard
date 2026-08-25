@@ -57,11 +57,12 @@ class GenericCLI:
         self.tips = tips or ["/help", "/settings"]
         self.updates = updates or ["Initial release"]
         # Keys that exist in config (e.g. internal/derived values like git
-        # remote info or the model name) but shouldn't clutter /settings or
-        # the /wizard walkthrough. Still readable/writable via
+        # remote info, model name, path, docs_url) but shouldn't clutter
+        # /settings or the /wizard walkthrough. Still readable/writable via
         # `/settings set <key> <value>` and `self.config.get/set`.
         self.hidden_settings = set(hidden_settings) if hidden_settings else {
             "github_user", "github_repo", "remote_url", "default_branch", "model",
+            "path", "docs_url",
         }
 
         defaults = {}
@@ -87,6 +88,7 @@ class GenericCLI:
         self.register_command("/help", self._cmd_help, "Show available commands")
         self.register_command("/clear", self._cmd_clear, "Clear the terminal")
         self.register_command("/settings", self._cmd_settings, "View or edit settings")
+        self.register_command("/reset", self._cmd_reset, "Reset settings to defaults (delete persisted config)")
         self.register_command("/exit", self._cmd_exit, "Exit the session")
         self.register_command("/quit", self._cmd_exit, "Exit the session")
         self.register_command("/install", self._cmd_install, "Install project requirements")
@@ -125,10 +127,32 @@ class GenericCLI:
             return None
         return raw
 
+    def _cmd_reset(self, prompt):
+        """Delete the persisted config file and restore defaults."""
+        path = self.config.path
+        try:
+            answer = Prompt.ask(
+                f"  Reset settings and delete [dim]{path}[/dim]?",
+                choices=["y", "n"],
+                default="n",
+            )
+        except (KeyboardInterrupt, EOFError):
+            return
+        if answer != "y":
+            console.print("[dim]Reset cancelled.[/dim]")
+            return
+        self.config.reset()
+        console.print(f"[dim]Settings reset to defaults. Deleted {path}[/dim]")
+        self._show_settings_table()
+
     def _cmd_settings(self, prompt):
         # /settings              -> interactive view + optional edit
         # /settings set k v...   -> direct set (v can contain spaces)
+        # /settings reset        -> same as /reset
         parts = prompt.split(maxsplit=3)
+        if len(parts) >= 2 and parts[1] == "reset":
+            self._cmd_reset(prompt)
+            return
         if len(parts) >= 3 and parts[1] == "set":
             key = parts[2]
             raw_value = parts[3] if len(parts) > 3 else ""
