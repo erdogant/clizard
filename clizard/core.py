@@ -107,8 +107,13 @@ class GenericCLI:
         raise SystemExit(0)
 
     @staticmethod
-    def _cast_value(raw: str, current):
-        """Cast a string CLI value to match the type of the existing setting."""
+    def _cast_value(raw: str, current, choices=None):
+        """Cast a string CLI value to match the type of the existing setting.
+
+        When *choices* includes the literal string ``"none"``, that value is
+        kept as the string ``"none"`` instead of being turned into Python
+        ``None`` — so every listed choice remains selectable.
+        """
         if raw == "":
             return current
         if isinstance(current, bool):
@@ -123,7 +128,13 @@ class GenericCLI:
                 return float(raw)
             except ValueError:
                 return raw
+        # Only map the word "none" -> None when it is *not* a valid choice.
         if raw.lower() == "none":
+            if choices and any(str(c).lower() == "none" for c in choices):
+                # Preserve the exact choice token (usually "none")
+                for c in choices:
+                    if str(c).lower() == "none":
+                        return c
             return None
         return raw
 
@@ -153,11 +164,16 @@ class GenericCLI:
         if len(parts) >= 2 and parts[1] == "reset":
             self._cmd_reset(prompt)
             return
+        meta = getattr(self, "arg_meta", {}) or {}
         if len(parts) >= 3 and parts[1] == "set":
             key = parts[2]
             raw_value = parts[3] if len(parts) > 3 else ""
             current = self.config.get(key)
-            value = self._cast_value(raw_value, current)
+            choices = (meta.get(key) or {}).get("choices")
+            value = self._cast_value(raw_value, current, choices=choices)
+            if choices and value not in choices:
+                self.error(f"Invalid value {value!r}. Choose from {choices}.")
+                return
             self.config.set(key, value)
             console.print(f"[dim]Set {key} = {value!r}[/dim]")
             return
@@ -176,8 +192,12 @@ class GenericCLI:
             self.error(f"Unknown key: {key}")
             return
         current = self.config.get(key)
+        choices = (meta.get(key) or {}).get("choices")
         raw_value = Prompt.ask(f"  New value for [bold]{key}[/bold]", default=str(current))
-        value = self._cast_value(raw_value, current)
+        value = self._cast_value(raw_value, current, choices=choices)
+        if choices and value not in choices:
+            self.error(f"Invalid value {value!r}. Choose from {choices}.")
+            return
         self.config.set(key, value)
         console.print(f"[dim]Set {key} = {value!r}[/dim]")
         self._show_settings_table()
@@ -204,13 +224,13 @@ class GenericCLI:
                 default_str = "" if current is None else str(current)
                 raw_value = Prompt.ask(label, default=default_str)
                 caster = info.get("type")
-                if caster and current is None:
+                if caster and current is None and not (choices and raw_value in choices):
                     try:
                         value = caster(raw_value)
                     except (ValueError, TypeError):
-                        value = self._cast_value(raw_value, current)
+                        value = self._cast_value(raw_value, current, choices=choices)
                 else:
-                    value = self._cast_value(raw_value, current)
+                    value = self._cast_value(raw_value, current, choices=choices)
                 if choices and value not in choices:
                     self.error(f"Invalid value {value!r}. Choose from {choices}.")
                     continue
@@ -321,7 +341,24 @@ class GenericCLI:
 
         grid.add_row(tips_text, updates_text)
 
-        layout_group = Group(centered_header, "─" * 64, "", grid)
+        parts = [centered_header, "─" * 64]
+
+        # If a previous session's config was loaded, show current (visible) settings
+        # below the divider and above "Getting started".
+        if getattr(self.config, "loaded_from_disk", False):
+            visible = [
+                (k, v) for k, v in self.config.settings.items()
+                if k not in self.hidden_settings
+            ]
+            if visible:
+                lines = "\n".join(f"  • [cyan]{k}[/cyan] = {v}" for k, v in visible)
+                settings_text = Text.from_markup(
+                    f"[bold {self.ACCENT}]Previously loaded settings[/bold {self.ACCENT}]\n\n{lines}"
+                )
+                parts.extend(["", settings_text])
+
+        parts.extend(["", grid])
+        layout_group = Group(*parts)
 
         console.print(
             Align.center(

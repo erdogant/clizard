@@ -19,6 +19,7 @@ class Config:
         else:
             self.path = DEFAULT_CONFIG_DIR / f"{app_name}.json"
         self.settings = dict(self.defaults)
+        self.loaded_from_disk = False
         self.load()
 
     def load(self):
@@ -27,6 +28,7 @@ class Config:
                 with open(self.path, "r") as f:
                     data = json.load(f)
                 self.settings.update(data)
+                self.loaded_from_disk = True
             except (json.JSONDecodeError, OSError):
                 pass
         return self.settings
@@ -48,3 +50,13 @@ class Config:
         for k, v in args_dict.items():
             if v is not None:
                 self.settings[k] = v
+
+    def reset(self):
+        """Delete the persisted config file and restore in-memory settings to defaults."""
+        if self.path.exists():
+            try:
+                self.path.unlink()
+            except OSError:
+                pass
+        self.settings = dict(self.defaults)
+        self.loaded_from_disk = False
