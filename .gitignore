@@ -10,6 +10,8 @@ __pycache__/
 libraries/
 .pypirc
 .sphinxbot
+.claude
+CLAUDE.md
 
 # Distribution / packaging
 .pylint.*
