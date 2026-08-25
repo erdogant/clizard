@@ -61,8 +61,7 @@ class GenericCLI:
         # /settings or the /wizard walkthrough. Still readable/writable via
         # `/settings set <key> <value>` and `self.config.get/set`.
         self.hidden_settings = set(hidden_settings) if hidden_settings else {
-            "github_user", "github_repo", "remote_url", "default_branch", "model",
-            "path", "docs_url",
+            "github_user", "github_repo", "remote_url", "default_branch", "model", "path", "docs_url",
         }
 
         defaults = {}
@@ -86,6 +85,7 @@ class GenericCLI:
 
     def _register_builtins(self):
         self.register_command("/help", self._cmd_help, "Show available commands")
+        self.register_command("/home", self._cmd_home, "Return to the home (welcome) screen")
         self.register_command("/clear", self._cmd_clear, "Clear the terminal")
         self.register_command("/settings", self._cmd_settings, "View or edit settings")
         self.register_command("/reset", self._cmd_reset, "Reset settings to defaults (delete persisted config)")
@@ -101,6 +101,11 @@ class GenericCLI:
 
     def _cmd_clear(self, prompt):
         console.clear()
+
+    def _cmd_home(self, prompt):
+        """Re-display the welcome / home screen."""
+        console.clear()
+        self.welcome()
 
     def _cmd_exit(self, prompt):
         console.print(f"[dim]Goodbye! Thanks for using {self.app_name}.[/dim]")
@@ -333,18 +338,33 @@ class GenericCLI:
         grid.add_column(ratio=1)
         grid.add_column(ratio=1)
 
-        tips_md = "\n".join(f"  • [cyan]{t}[/cyan]" for t in self.tips)
-        updates_md = "\n".join(f"• {u}" for u in self.updates)
+        # Primary workflow commands on the left; utility commands on the right.
+        LEFT_TIPS = ("/wizard", "/run", "/settings")
+        RIGHT_TIPS = ("/reset", "/home", "/help")
+        left = [t for t in self.tips if t in LEFT_TIPS]
+        right = [t for t in self.tips if t in RIGHT_TIPS]
+        # Any custom tips not in either set stay on the left.
+        extra = [t for t in self.tips if t not in LEFT_TIPS and t not in RIGHT_TIPS]
+        left = left + extra
 
-        tips_text = Text.from_markup(f"[bold {self.ACCENT}]Getting started[/bold {self.ACCENT}]\n\nType commands like:\n{tips_md}")
-        updates_text = Text.from_markup(f"[bold {self.ACCENT}]What's new[/bold {self.ACCENT}]\n\n{updates_md}")
+        left_md = "\n".join(f"  • [cyan]{t}[/cyan]" for t in left) or "  • —"
+        right_md = "\n".join(f"  • [cyan]{t}[/cyan]" for t in right) or "  • —"
 
-        grid.add_row(tips_text, updates_text)
+        tips_text = Text.from_markup(
+            f"[bold {self.ACCENT}]Use Commands[/bold {self.ACCENT}]\n\n"
+            f"{left_md}"
+        )
+        utility_text = Text.from_markup(
+            f"[bold {self.ACCENT}]Utilities[/bold {self.ACCENT}]\n\n{right_md}"
+        )
 
-        parts = [centered_header, "─" * 64]
+        grid.add_row(tips_text, utility_text)
 
-        # If a previous session's config was loaded, show current (visible) settings
-        # below the divider and above "Getting started".
+        parts = [centered_header]
+
+        # If a previous session's config was loaded, show a divider and the
+        # current (visible) settings below it, above "Getting started".
+        # When nothing was loaded, skip the horizontal line entirely.
         if getattr(self.config, "loaded_from_disk", False):
             visible = [
                 (k, v) for k, v in self.config.settings.items()
@@ -353,11 +373,12 @@ class GenericCLI:
             if visible:
                 lines = "\n".join(f"  • [cyan]{k}[/cyan] = {v}" for k, v in visible)
                 settings_text = Text.from_markup(
-                    f"[bold {self.ACCENT}]Previously loaded settings[/bold {self.ACCENT}]\n\n{lines}"
+                    f"[bold {self.ACCENT}]Previous Arguments[/bold {self.ACCENT}]\n\n{lines}"
                 )
-                parts.extend(["", settings_text])
+                parts.extend(["─" * 64, "", settings_text])
 
         parts.extend(["", grid])
+
         layout_group = Group(*parts)
 
         console.print(

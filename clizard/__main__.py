@@ -49,13 +49,20 @@ def build_cli(repo_path="."):
     }
 
     has_run_target = main_func is not None or sm_config_path is not None
-    default_tips = ["/wizard", "/run", "/settings", "/help"] if has_run_target else ["/settings", "/help"]
+    default_tips = (
+        ["/wizard", "/run", "/settings", "/reset", "/home", "/help"]
+        if has_run_target
+        else ["/settings", "/reset", "/home", "/help"]
+    )
+
+    from .config import local_settings_path
 
     cli = GenericCLI(
         app_name=app_name,
         ascii_art=clz.get("ascii_art"),
         accent_color=clz.get("accent_color", "#d97757"),
         settings=settings,
+        config_path=str(local_settings_path(repo_path)),
         tips=clz.get("tips") if clz.get("tips") else default_tips,
         updates=clz.get("updates"),
     )
@@ -79,7 +86,7 @@ def build_cli(repo_path="."):
             cli.tips = [t for t in cli.tips if t != "/run"]
 
     if has_run_target:
-        @cli.command("/run", "Run the project's main()/Snakemake workflow with current settings")
+        @cli.command("/run", "Run the project's main with current arguments")
         def _cmd_run(prompt):
             if main_func is not None:
                 cli.status("Running main()...")

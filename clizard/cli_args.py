@@ -75,12 +75,21 @@ def auto_cli(parser, args=None, app_name=None, handler=None, run_callback=None, 
             "help": action.help,
         }
 
+    # Default to a project-local .clizard/settings.json when no path given.
+    if config_path is None:
+        from .config import local_settings_path
+        config_path = str(local_settings_path("."))
+
     cli = GenericCLI(
         app_name=app_name or parser.prog or "CLI",
         settings=settings,
         config_path=config_path,
         handler=handler,
-        tips=["/run", "/settings", "/docs", "/help"] if run_callback else ["/settings", "/help"],
+        tips=(
+            ["/run", "/settings", "/reset", "/home", "/help"]
+            if run_callback
+            else ["/settings", "/reset", "/home", "/help"]
+        ),
     )
     cli.arg_meta = arg_meta  # exposed for validation / display in /settings
 

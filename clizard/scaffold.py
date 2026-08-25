@@ -34,7 +34,7 @@ _DEFAULT_CALL_STYLE = {call_style!r}
 # Matches the default tips shown by `clizard` itself (see clizard_file.py /
 # __main__.py) so the menu is identical whether you're running the
 # interactive `clizard` CLI or this standalone generated script.
-_DEFAULT_TIPS = ["/wizard", "/run", "/settings", "/docs", "/help"]
+_DEFAULT_TIPS = ["/wizard", "/run", "/settings", "/reset", "/home", "/help"]
 
 
 def build_cli():
