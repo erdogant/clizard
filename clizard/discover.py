@@ -119,8 +119,14 @@ def _load_module(py_file: Path):
     return module
 
 
-def find_main(repo_path="."):
-    """Return (module, main_func, file_path) or (None, None, None)."""
+def find_main(repo_path=".", errors=None):
+    """Return (module, main_func, file_path) or (None, None, None).
+
+    If `errors` (a list) is passed, an import failure appends a message to
+    it instead of only going to stderr -- lets callers like build_cli()
+    surface the failure in the CLI itself rather than it looking like a
+    silent crash on stderr.
+    """
     py_file = _find_entry_file(repo_path)
     if py_file is None:
         return None, None, None
@@ -128,7 +134,11 @@ def find_main(repo_path="."):
     try:
         module = _load_module(py_file)
     except Exception as e:
-        print(f"clizard: failed to import {py_file} to discover main(): {e!r}", file=sys.stderr)
+        msg = f"Failed to import {py_file.name} to discover main(): {e!r}"
+        if errors is not None:
+            errors.append(msg)
+        else:
+            print(f"clizard: {msg}", file=sys.stderr)
         return None, None, py_file
 
     main_func = getattr(module, "main", None)

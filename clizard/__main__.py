@@ -35,11 +35,26 @@ def build_cli(repo_path="."):
     app_name = clz.get("app_name") or proj_info.get("name") or git_info.get("github_repo") or "clizard"
     docs_url = clz.get("docs_url") or proj_info.get("docs_url")
 
-    module, main_func, entry_file = find_main(repo_path)
+    discovery_errors = []
+    module, main_func, entry_file = find_main(repo_path, errors=discovery_errors)
     main_settings, arg_meta, call_style = settings_from_main(main_func) if main_func else ({}, {}, "kwargs")
 
     sm_config_path = find_snakemake_config(repo_path)
     sm_settings = settings_from_snakemake_config(sm_config_path) if sm_config_path else {}
+
+    # Short, friendly summary of what discovery found, so a bare/limited
+    # CLI (no /run, few settings) is explained instead of just showing up
+    # empty. Kept plain (no paths/backticks) to read as a status note, not
+    # a technical/error log line.
+    if main_func is not None:
+        n = len(main_settings)
+        main_bit = f"Connected {n} argument{'s' if n != 1 else ''} from the main file."
+    elif discovery_errors:
+        main_bit = "Couldn't load the main file automatically."
+    else:
+        main_bit = "No runnable entry point found yet."
+    sm_bit = "Snakemake workflow connected." if sm_config_path else None
+    discovery_summary = f"{main_bit} {sm_bit}" if sm_bit else main_bit
 
     settings = {
         "path": repo_path,
@@ -54,6 +69,9 @@ def build_cli(repo_path="."):
         if has_run_target
         else ["/settings", "/reset", "/home", "/help"]
     )
+    default_tips.extend(["/install", "/docs"])
+    if main_func is not None:
+        default_tips.append("/scaffold")
 
     from .config import local_settings_path
 
@@ -65,6 +83,7 @@ def build_cli(repo_path="."):
         config_path=str(local_settings_path(repo_path)),
         tips=clz.get("tips") if clz.get("tips") else default_tips,
         updates=clz.get("updates"),
+        discovery_summary=discovery_summary,
     )
     cli.arg_meta = arg_meta
 
@@ -89,30 +108,30 @@ def build_cli(repo_path="."):
         @cli.command("/run", "Run the project's main with current arguments")
         def _cmd_run(prompt):
             if main_func is not None:
-                cli.status("Running main()...")
-                if call_style == "argv":
-                    argv = ["clizard"]
-                    for name, meta in arg_meta.items():
-                        flag = meta.get("flag")
-                        if not flag:
-                            continue
-                        val = cli.config.get(name)
-                        if val is None:
-                            continue
-                        if meta.get("is_flag"):
-                            if val:
-                                argv.append(flag)
-                        else:
-                            argv.extend([flag, str(val)])
-                    old_argv = sys.argv
-                    sys.argv = argv
-                    try:
-                        result = main_func()
-                    finally:
-                        sys.argv = old_argv
-                else:
-                    call_kwargs = {k: cli.config.get(k) for k in main_settings}
-                    result = main_func(**call_kwargs)
+                with cli.status("Running main()..."):
+                    if call_style == "argv":
+                        argv = ["clizard"]
+                        for name, meta in arg_meta.items():
+                            flag = meta.get("flag")
+                            if not flag:
+                                continue
+                            val = cli.config.get(name)
+                            if val is None:
+                                continue
+                            if meta.get("is_flag"):
+                                if val:
+                                    argv.append(flag)
+                            else:
+                                argv.extend([flag, str(val)])
+                        old_argv = sys.argv
+                        sys.argv = argv
+                        try:
+                            result = main_func()
+                        finally:
+                            sys.argv = old_argv
+                    else:
+                        call_kwargs = {k: cli.config.get(k) for k in main_settings}
+                        result = main_func(**call_kwargs)
                 if result is not None:
                     cli.assistant_message(str(result))
 
@@ -121,11 +140,13 @@ def build_cli(repo_path="."):
                 write_snakemake_config(sm_config_path, current_sm)
                 cmd = ["snakemake", "--configfile", str(sm_config_path), "--cores", "all"]
                 console_cmd = " ".join(cmd)
-                cli.status(f"Running: {console_cmd}")
                 try:
-                    result = subprocess.run(cmd, cwd=repo_path, capture_output=True, text=True)
+                    with cli.status(f"Running: {console_cmd}"):
+                        result = subprocess.run(cmd, cwd=repo_path, capture_output=True, text=True)
                     output = (result.stdout + result.stderr).strip()
-                    cli.assistant_message(f"```\n$ {console_cmd}\n{output[-2000:]}\n```")
+                    shown = output[-2000:]
+                    note = "\n[...output truncated...]" if len(output) > 2000 else ""
+                    cli.assistant_message(f"```\n$ {console_cmd}\n{shown}\n```{note}")
                 except FileNotFoundError:
                     cli.error("snakemake is not installed or not on PATH.")
 

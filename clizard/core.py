@@ -1,6 +1,8 @@
 """Generic Claude-style rich CLI, reusable across projects."""
 import time
 import sys
+from contextlib import contextmanager
+from difflib import get_close_matches
 from rich import box
 from rich.align import Align
 from rich.console import Console, Group
@@ -47,7 +49,9 @@ class GenericCLI:
         tips: list = None,
         updates: list = None,
         hidden_settings=None,
+        discovery_summary: str = None,
     ):
+        self.discovery_summary = discovery_summary
         self.app_name = app_name
         self.ascii_art = ascii_art or DEFAULT_ASCII
         self.ACCENT = accent_color
@@ -143,6 +147,24 @@ class GenericCLI:
             return None
         return raw
 
+    @staticmethod
+    def _cast_with_meta(raw: str, current, meta_entry=None):
+        """Cast using the declared type from arg_meta when `current` is
+        None (so there's no type to infer from), falling back to
+        `_cast_value`. Used by both /settings set and the wizard so a
+        freshly-discovered key with no default casts the same way in
+        either path instead of silently staying a string.
+        """
+        meta_entry = meta_entry or {}
+        choices = meta_entry.get("choices")
+        caster = meta_entry.get("type")
+        if caster and current is None and not (choices and raw in choices):
+            try:
+                return caster(raw)
+            except (ValueError, TypeError):
+                pass
+        return GenericCLI._cast_value(raw, current, choices=choices)
+
     def _cmd_reset(self, prompt):
         """Delete the persisted config file and restore defaults."""
         path = self.config.path
@@ -174,8 +196,9 @@ class GenericCLI:
             key = parts[2]
             raw_value = parts[3] if len(parts) > 3 else ""
             current = self.config.get(key)
-            choices = (meta.get(key) or {}).get("choices")
-            value = self._cast_value(raw_value, current, choices=choices)
+            key_meta = meta.get(key) or {}
+            choices = key_meta.get("choices")
+            value = self._cast_with_meta(raw_value, current, key_meta)
             if choices and value not in choices:
                 self.error(f"Invalid value {value!r}. Choose from {choices}.")
                 return
@@ -191,15 +214,22 @@ class GenericCLI:
         if answer != "y":
             return
 
-        keys = [k for k in self.config.settings.keys() if k not in self.hidden_settings]
-        key = Prompt.ask(f"  Which key? [{'/'.join(keys)}]")
+        groups = self._grouped_visible_keys()
+        keys = [k for _, group_keys in groups for k in group_keys]
+        if len(groups) > 1:
+            for group_label, group_keys in groups:
+                console.print(f"  [dim]{group_label}: {', '.join(group_keys)}[/dim]")
+            key = Prompt.ask("  Which key?")
+        else:
+            key = Prompt.ask(f"  Which key? [{'/'.join(keys)}]")
         if key not in self.config.settings:
             self.error(f"Unknown key: {key}")
             return
         current = self.config.get(key)
-        choices = (meta.get(key) or {}).get("choices")
+        key_meta = meta.get(key) or {}
+        choices = key_meta.get("choices")
         raw_value = Prompt.ask(f"  New value for [bold]{key}[/bold]", default=str(current))
-        value = self._cast_value(raw_value, current, choices=choices)
+        value = self._cast_with_meta(raw_value, current, key_meta)
         if choices and value not in choices:
             self.error(f"Invalid value {value!r}. Choose from {choices}.")
             return
@@ -207,41 +237,52 @@ class GenericCLI:
         console.print(f"[dim]Set {key} = {value!r}[/dim]")
         self._show_settings_table()
 
+    def _grouped_visible_keys(self):
+        """Visible (non-hidden) setting keys, grouped by source: Snakemake
+        config (`sm_`-prefixed) vs. everything else (the program's own
+        main() arguments). Returns a list of (group_label, [keys]) pairs,
+        omitting empty groups, so wizard/settings can show which system
+        each key belongs to instead of one undifferentiated list.
+        """
+        keys = [k for k in self.config.settings.keys() if k not in self.hidden_settings]
+        program = [k for k in keys if not k.startswith("sm_")]
+        snakemake = [k for k in keys if k.startswith("sm_")]
+        groups = []
+        if program:
+            groups.append(("Program Arguments", program))
+        if snakemake:
+            groups.append(("Snakemake Config", snakemake))
+        return groups
+
     def _cmd_wizard(self, prompt):
         console.print(f"[bold {self.ACCENT}]Setup Wizard[/bold {self.ACCENT}] — press Enter to keep the current value.\n")
         meta = getattr(self, "arg_meta", {}) or {}
 
-        for key in list(self.config.settings.keys()):
-            if key in self.hidden_settings:
-                continue
-            current = self.config.get(key)
-            info = meta.get(key, {})
-            help_text = info.get("help")
-            choices = info.get("choices")
+        for group_label, keys in self._grouped_visible_keys():
+            console.print(f"[bold {self.ACCENT}]{group_label}[/bold {self.ACCENT}]")
+            for key in keys:
+                current = self.config.get(key)
+                info = meta.get(key, {})
+                help_text = info.get("help")
+                choices = info.get("choices")
 
-            label = f"  [bold]{key}[/bold]"
-            if help_text:
-                label += f" [dim]({help_text})[/dim]"
-            if choices:
-                label += f" [dim]choices: {choices}[/dim]"
+                label = f"  [bold]{key}[/bold]"
+                if help_text:
+                    label += f" [dim]({help_text})[/dim]"
+                if choices:
+                    label += f" [dim]choices: {choices}[/dim]"
 
-            while True:
-                default_str = "" if current is None else str(current)
-                raw_value = Prompt.ask(label, default=default_str)
-                caster = info.get("type")
-                if caster and current is None and not (choices and raw_value in choices):
-                    try:
-                        value = caster(raw_value)
-                    except (ValueError, TypeError):
-                        value = self._cast_value(raw_value, current, choices=choices)
-                else:
-                    value = self._cast_value(raw_value, current, choices=choices)
-                if choices and value not in choices:
-                    self.error(f"Invalid value {value!r}. Choose from {choices}.")
-                    continue
-                break
+                while True:
+                    default_str = "" if current is None else str(current)
+                    raw_value = Prompt.ask(label, default=default_str)
+                    value = self._cast_with_meta(raw_value, current, info)
+                    if choices and value not in choices:
+                        self.error(f"Invalid value {value!r}. Choose from {choices}.")
+                        continue
+                    break
 
-            self.config.set(key, value)
+                self.config.set(key, value)
+            console.print()
 
         console.print()
         self._show_settings_table()
@@ -273,9 +314,9 @@ class GenericCLI:
             return
 
         console.print(f"[dim]$ {' '.join(cmd)}[/dim]")
-        self.status("Installing...")
         try:
-            result = subprocess.run(cmd, capture_output=True, text=True)
+            with self.status("Installing..."):
+                result = subprocess.run(cmd, capture_output=True, text=True)
         except Exception as e:
             self.error(str(e))
             return
@@ -313,10 +354,12 @@ class GenericCLI:
         )
         table.add_column("Parameter", style=self.ACCENT)
         table.add_column("Current Value")
-        for k, v in self.config.settings.items():
-            if k in self.hidden_settings:
-                continue
-            table.add_row(str(k), str(v))
+        groups = self._grouped_visible_keys()
+        for i, (group_label, keys) in enumerate(groups):
+            if len(groups) > 1:
+                table.add_row(f"[bold]{group_label}[/bold]", "", style="dim")
+            for k in keys:
+                table.add_row(str(k), str(self.config.get(k)))
         console.print(table)
 
     # ---------- rendering ----------
@@ -340,7 +383,7 @@ class GenericCLI:
 
         # Primary workflow commands on the left; utility commands on the right.
         LEFT_TIPS = ("/wizard", "/run", "/settings")
-        RIGHT_TIPS = ("/reset", "/home", "/help")
+        RIGHT_TIPS = ("/reset", "/home", "/help", "/scaffold", "/install", "/docs")
         left = [t for t in self.tips if t in LEFT_TIPS]
         right = [t for t in self.tips if t in RIGHT_TIPS]
         # Any custom tips not in either set stay on the left.
@@ -379,6 +422,15 @@ class GenericCLI:
 
         parts.extend(["", grid])
 
+        if self.discovery_summary:
+            footer = Panel(
+                Align.center(Text(self.discovery_summary, style=self.DIM)),
+                box=box.SIMPLE,
+                border_style=self.DIM,
+                padding=(0, 1),
+            )
+            parts.extend(["", footer])
+
         layout_group = Group(*parts)
 
         console.print(
@@ -398,9 +450,25 @@ class GenericCLI:
         console.print("═" * 40, style="dim")
         console.print()
 
-    def status(self, text, duration=1.2):
-        with Live(Spinner("dots", text=f"[dim]{text}[/dim]", style=self.ACCENT), refresh_per_second=12, transient=True):
-            time.sleep(duration)
+    @contextmanager
+    def status(self, text, min_duration=0.0):
+        """Show a spinner for the duration of the wrapped block.
+
+        Usage: `with cli.status("Running..."):  <do the actual work>`.
+        `min_duration` optionally enforces a minimum visible time (useful
+        for near-instant operations where a flash-and-gone spinner reads
+        as a glitch), but never blocks *before* the work starts.
+        """
+        start = time.monotonic()
+        live = Live(Spinner("dots", text=f"[dim]{text}[/dim]", style=self.ACCENT), refresh_per_second=12, transient=True)
+        live.start()
+        try:
+            yield
+        finally:
+            elapsed = time.monotonic() - start
+            if min_duration and elapsed < min_duration:
+                time.sleep(min_duration - elapsed)
+            live.stop()
 
     def tool_call(self, tool_name):
         console.print(f"  [dim]🛠️ Running tool:[/dim] [italic cyan]{tool_name}[/italic cyan]...")
@@ -423,18 +491,23 @@ class GenericCLI:
                 if not prompt:
                     continue
 
-                cmd = prompt.split(maxsplit=1)[0]
+                cmd_raw = prompt.split(maxsplit=1)[0]
+                cmd = cmd_raw.lower()
                 if cmd in self._commands:
                     fn, _ = self._commands[cmd]
-                    fn(prompt)
+                    # Rebuild prompt with the canonical lowercase command so
+                    # command bodies (which re-split `prompt`) see it consistently.
+                    fn(cmd + prompt[len(cmd_raw):])
                     continue
                 if cmd.startswith("/"):
-                    self.error(f"Unknown command: {cmd} (type /help for a list)")
+                    suggestions = get_close_matches(cmd, self._commands.keys(), n=1, cutoff=0.6)
+                    hint = f" Did you mean `{suggestions[0]}`?" if suggestions else " Type /help for a list."
+                    self.error(f"Unknown command: {cmd_raw}.{hint}")
                     continue
 
                 self.user_message(prompt)
-                self.status("Thinking...")
-                reply = self.handle(prompt)
+                with self.status("Thinking...", min_duration=0.4):
+                    reply = self.handle(prompt)
                 self.assistant_message(reply)
 
             except SystemExit:
