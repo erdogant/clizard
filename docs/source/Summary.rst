@@ -4,54 +4,73 @@ Summary
 Background
 **********
 
-The *clizard* library is a lightweight toolkit designed to simplify the creation and management of command‑line interfaces (CLIs) in Python projects. Its core philosophy is that most CLI applications share a common set of options—such as verbosity, configuration file paths, and help flags—and that these can be generated automatically without repetitive boilerplate code. By providing a small API surface around `argparse`, *clizard* allows developers to focus on business logic while still delivering a polished user experience.
+The *clizard* library is a lightweight toolkit that wraps any existing Python project in a rich, interactive terminal interface — with no changes to the project's own code required. Its core philosophy is that most Python tools share a common problem: the logic is solid, but running it requires knowing the right flags, paths, and defaults. *clizard* solves this by auto-discovering the project's entry point, extracting its arguments, and presenting them through a guided shell with settings persistence and one-click execution.
 
-The library was conceived in response to the growing need for reproducible data‑science workflows. Researchers often prototype scripts that later become production tools, yet they repeatedly write similar CLI scaffolding. *clizard* eliminates this duplication by offering functions like `build_parser` and `auto_cli`, which introspect existing parsers or configuration files and generate fully functional command lines on the fly. This not only speeds up development but also enforces consistency across projects.
+The library was conceived for data science and research workflows, where scripts frequently evolve into production tools yet keep accumulating CLI boilerplate. Rather than asking developers to adopt a new framework, *clizard* meets existing code where it is: it can introspect a bare function signature, an internal ``argparse.ArgumentParser``, or a Snakemake ``config.yaml`` — and produce a consistent interactive interface from any of them.
 
-Another motivation behind *clizard* is to bridge the gap between code and documentation. The library can load a `.clizard.json` file that contains metadata about the CLI, such as default values and help messages. Functions like `load_clizard_file` and `ensure_clizard_file` provide robust handling of these files, ensuring that even if a user forgets to supply one, sensible defaults are applied automatically.
+A second motivation is reproducibility. Settings edited through the shell are persisted to ``.clizard/settings.json`` between sessions. This means a colleague who configures ``--input-path`` on Monday finds that value waiting on Tuesday, and a CI pipeline can inspect the last-used configuration without re-running the tool.
+
 
 Output
 ******
 
-When a developer integrates *clizard* into their project, the library produces two primary artifacts: an enriched command‑line parser and a JSON configuration file. The enriched parser automatically injects standard arguments (`--verbose`, `--config`, `--help`) while preserving any custom options defined by the user. This guarantees that every executable script in a codebase behaves consistently, making it easier for end users to discover available flags and understand their effects.
+When *clizard* starts in a repository it produces two primary runtime artifacts:
 
-In addition to the parser, *clizard* writes a `.clizard.json` file that captures the current state of the CLI configuration. This file can be used by downstream tools—such as documentation generators or CI pipelines—to introspect the command‑line interface without executing the script. By keeping this metadata in sync with the code, developers avoid the pitfalls of stale help messages and mismatched defaults.
+1. **An interactive shell** — a ``rich``-based terminal application with built-in slash commands (``/wizard``, ``/run``, ``/settings``, ``/reset``, ``/install``, ``/docs``, ``/help``) and an optional free-text handler for project-specific prompts.
 
-Finally, *clizard* offers a small set of helper functions that expose the parsed arguments as a dictionary. This makes it trivial to serialize runtime configuration for reproducibility or logging purposes, enabling researchers to capture exactly how a script was invoked in a single line of code.
+2. **A ``.clizard/`` directory** at the repository root, containing:
+
+   * ``settings.json`` — the persisted runtime configuration (written on every ``/settings set`` or ``/wizard`` completion).
+   * ``meta.json`` — optional display customisation: app name, ASCII art banner, accent colour, tips menu, and an updates log.
+
+Optionally, the ``/scaffold`` command (or the ``clizardmake`` console entry point) generates a standalone ``clizard_main.py`` that bakes the current settings and argument metadata into a self-contained file. This file runs without any discovery step and is suitable for distribution alongside the project.
+
 
 Schematic Overview
 ******************
 
-The high‑level workflow of *clizard* can be visualised with the following ASCII diagram:
+The high-level workflow of *clizard* from startup to execution:
 
 .. code-block:: text
 
-   ┌───────────────────────┐
-   │  User defines parser  │
-   │ (argparse.ArgumentParser)│
-   └─────────────▲─────────┘
-                 │
-          enrich_parser()
-                 │
-   ┌─────────────▼─────────┐
-   │  Parser with defaults │
-   │  and standard flags   │
-   └─────────────▲─────────┘
-                 │
-         parse_args() or auto_cli()
-                 │
-   ┌─────────────▼─────────┐
-   │  Namespace object     │
-   │  (user arguments)     │
-   └─────────────▲─────────┘
-                 │
-          write_clizard_file()
-                 │
-   ┌─────────────▼─────────┐
-   │  .clizard.json file   │
-   │  (metadata snapshot)  │
-   └───────────────────────┘
+   ┌─────────────────────────────────────┐
+   │  Repository root                    │
+   │  (contains main.py / __main__.py /  │
+   │   Snakefile / pyproject.toml)       │
+   └──────────────────┬──────────────────┘
+                      │
+              find_main() / find_snakemake_config()
+                      │
+   ┌──────────────────▼──────────────────┐
+   │  Entry point discovered             │
+   │  (module, main_func, file_path)     │
+   └──────────────────┬──────────────────┘
+                      │
+         settings_from_main() or
+         settings_from_snakemake_config()
+                      │
+   ┌──────────────────▼──────────────────┐
+   │  Settings dict + arg metadata       │
+   │  (defaults, types, choices, help)   │
+   └──────────────────┬──────────────────┘
+                      │
+               GenericCLI(...)
+                      │
+   ┌──────────────────▼──────────────────┐
+   │  Interactive shell                  │
+   │  /wizard  /run  /settings  /reset   │
+   └──────────────────┬──────────────────┘
+                      │
+             /run invoked
+                      │
+   ┌──────────────────▼──────────────────┐
+   │  main(**settings)                   │
+   │  — or —                             │
+   │  sys.argv rebuilt → main()          │
+   │  — or —                             │
+   │  snakemake --configfile config.yaml │
+   └─────────────────────────────────────┘
 
-The diagram illustrates how *clizard* starts with a user‑supplied parser, enriches it with standard arguments and defaults, parses the command line, and finally persists the configuration to disk. Each step is intentionally lightweight so that developers can drop *clizard* into existing projects without altering their workflow.
+Each step is intentionally lightweight. *clizard* does not require changes to the underlying project and imposes no framework constraints on how ``main()`` is structured.
 
 .. include:: add_bottom.add

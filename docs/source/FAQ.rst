@@ -4,165 +4,297 @@ FAQ
 Frequently Asked Questions
 ---------------------------
 
-This page gathers the most common questions that arise when working with **clizard**.  
-Each section is written as a self‑contained narrative: we first describe why the issue matters, then explain how it manifests in practice, and finally provide concrete steps to resolve it.
+This page gathers the most common questions that arise when working with **clizard**.
+Each answer explains why an issue occurs and provides concrete steps to resolve it.
+
 
 How do I install clizard?
 *************************
 
-Installing a command‑line tool can feel intimidating if you are not familiar with Python packaging.  The reason this question is asked so often is that many users expect a single binary to appear on the system path after installation.  **clizard** deliberately avoids shipping external binaries; instead it relies on pure Python and optional compiled extensions that are built automatically by pip when possible.  This design choice keeps the package lightweight and ensures that it works out of the box in most virtual‑environment setups.
-
-When you run ``pip install clizard`` from a clean environment, pip downloads the source distribution, resolves dependencies such as *rich* for terminal styling, and compiles any C extensions if your compiler is available.  If compilation fails, pip falls back to a pure‑Python implementation without raising an error, which explains why the installation often succeeds even on systems lacking build tools.  The optional binary approach also means that you can install **clizard** from source by cloning the repository and running ``python -m pip install .`` in the project root; this will honour any local modifications or additional dependencies defined in ``pyproject.toml``.
-
-After installation, the entry‑point script ``clizard`` is automatically added to your environment’s executable directory.  You can verify that it works by invoking the help command:
-
-.. code-block:: python
+.. code-block:: console
 
    pip install clizard
-   python -m clizard --help
 
-The output will display a Rich‑styled usage message and list available subcommands, confirming that the installation was successful.
+   # Upgrade to the latest release
+   pip install -U clizard
 
-What if I get an error about missing .clizard file?
-**************************************************
+After installation two console entry points are available:
 
-When **clizard** starts up it looks for a configuration file named ``.clizard`` in the current working directory or any parent directories.  This file is expected to contain JSON that specifies project‑specific defaults such as model names, paths, and custom command definitions.  If the file is absent or contains malformed JSON, **clizard** falls back to an empty dictionary and uses built‑in defaults for all settings.  The fallback behaviour is intentional: it allows developers to run the tool in a new repository without first creating configuration files, while still enabling advanced customization when desired.
+.. code-block:: console
 
-The function ``load_clizard_file`` encapsulates this logic.  It attempts to open the file, parse its contents with ``json.load``, and return the resulting dictionary.  If any exception occurs—whether due to missing file or invalid JSON—the function logs a warning (using Rich) and returns an empty dict.  The helper ``ensure_clizard_file`` guarantees that a configuration file exists by creating one with an empty object if necessary, which is useful when initializing a new project.
+   clizard        # launch the interactive shell in the current directory
+   clizardmake    # generate a standalone clizard_main.py for the current project
 
-A typical usage pattern looks like this:
+Confirm the installation succeeded:
 
 .. code-block:: python
 
-   data = load_clizard_file('.')
-   print(data)  # {} when missing
+   import clizard
+   print(clizard.__version__)   # e.g. 0.2.3
 
-The printed output demonstrates the graceful degradation: an empty dictionary indicates that **clizard** will rely on defaults until you provide your own configuration.
+If you need to install from source (for example, to test a local change):
+
+.. code-block:: console
+
+   git clone https://github.com/erdogant/clizard.git
+   cd clizard
+   pip install -e .
+
+
+What if I get an error about a missing ``.clizard`` file?
+**********************************************************
+
+**clizard** does not require a ``.clizard/meta.json`` file to run. When the file is absent, ``load_clizard_file`` returns an empty dictionary and ``ensure_clizard_file`` applies built-in defaults for the app name, ASCII art, accent colour, and tips menu. You will still get a fully functional interactive shell.
+
+If you want to customise the display identity, create ``.clizard/meta.json`` at the repository root:
+
+.. code-block:: json
+
+   {
+     "app_name": "My Tool",
+     "accent_color": "#5b9bd5",
+     "tips": ["/wizard", "/run", "/settings", "/help"]
+   }
+
+To verify that the file is being read:
+
+.. code-block:: python
+
+   from clizard.clizard_file import load_clizard_file
+   print(load_clizard_file("."))   # {} when missing, dict when found
+
+.. note::
+
+   Clizard stores **runtime settings** (argument values) in ``.clizard/settings.json``,
+   which is separate from ``.clizard/meta.json`` (display metadata). The two files are
+   independent; deleting ``settings.json`` resets argument values without affecting
+   the display configuration, and vice versa.
+
 
 How does clizard discover my project?
 *************************************
 
-Project discovery is a core feature of **clizard**.  The ``build_cli`` function in ``__main__.py`` orchestrates this process by inspecting the repository root (defaulting to ``"."``) for a variety of indicators that signal how the tool should behave.  It first checks for a ``main()`` function defined at the top level, which signals that the project is a Python script.  If found, it automatically creates a corresponding command that calls this function with parsed arguments.
+Discovery runs in three passes, each broader than the last.
 
-Next, the discovery logic searches for Snakemake workflow files such as ``Snakefile`` or ``workflow/Snakefile``.  When a configuration directive (``configfile: config.yaml``) is present, the YAML file is parsed and merged into the CLI settings, allowing users to edit workflow parameters interactively through **clizard**.
+**Pass 1 — named candidates.** Clizard looks for ``__main__.py``, ``main.py``, and a file named after the repository (read from ``pyproject.toml`` and from ``.git/config``). It checks the repo root and one level of subdirectories.
 
-The function also looks for Git metadata (e.g., ``.git/``), a ``pyproject.toml`` that defines project dependencies, and any existing ``.clizard`` overrides.  If none of these cues are found, ``build_cli`` falls back to creating a bare ``GenericCLI`` instance that still offers basic command handling but without project‑specific enhancements.
+**Pass 2 — argument-handling patterns.** If no named candidate is found, every ``.py`` file is scanned for a ``def main(`` definition alongside references to ``argparse``, ``sys.argv``, ``click``, or ``typer``.
 
-The following example shows how to build the CLI for the current directory and immediately run it:
+**Pass 3 — ``__name__`` guard.** As a final fallback, any file that defines ``main()`` and contains an ``if __name__ == "__main__"`` guard is treated as the entry point.
+
+Once the file is found, clizard also checks for:
+
+* A ``Snakefile`` (Snakemake workflow support)
+* ``.git/config`` (for the GitHub repo name)
+* ``pyproject.toml`` (for the project name, version, docs URL, and dependencies)
+* ``.clizard/meta.json`` (display customisation overrides)
+
+To run discovery programmatically:
 
 .. code-block:: python
 
-   cli = build_cli('.')
-   cli.run()
+   from clizard.discover import find_main
+   module, main_func, entry_file = find_main(".")
+   print(entry_file)   # e.g. PosixPath('/my/repo/__main__.py')
 
-Because the function accepts both string paths and :class:`pathlib.Path` objects, you can pass a custom repository root if your project lives elsewhere.
 
 Can I use clizard with an existing argparse script?
 ****************************************************
 
-Many developers have legacy scripts that already use ``argparse`` to parse command‑line arguments.  Refactoring these scripts to adopt **clizard**’s interactive interface would normally require significant code changes.  The ``auto_cli`` helper bridges this gap by extracting the argument definitions from an existing :class:`argparse.ArgumentParser` instance and converting them into a ``GenericCLI`` that preserves type casting, default values, and validation logic.
-
-The function iterates over each action in the parser’s ``_actions`` list, mapping argument names to settings keys.  It then constructs a new CLI where each option becomes an interactive prompt when the user invokes the tool without specifying it on the command line.  The original parsing semantics are retained: if the user supplies a value on the command line, that value overrides any stored configuration.
-
-Because ``auto_cli`` does not modify your original parser or its ``main()`` function, you can keep your existing code untouched and still enjoy **clizard**’s features.  A minimal example:
+Yes — and this is the most common use case. The :func:`auto_cli` helper reads the argument definitions from an existing :class:`~argparse.ArgumentParser` and maps them to interactive settings, without modifying your parser or ``main()`` function.
 
 .. code-block:: python
 
    import argparse
-   p = argparse.ArgumentParser()
-   p.add_argument('--foo', type=int)
-   cli = auto_cli(p)
+   from clizard import auto_cli
+
+   parser = argparse.ArgumentParser()
+   parser.add_argument("--input-path", type=str)
+   parser.add_argument("--verbose", action="store_true", default=False)
+
+   cli = auto_cli(parser)
    cli.run()
 
-After running this script, you will see a Rich‑styled prompt asking for ``--foo`` if it was not supplied on the command line.
+Alternatively, if your ``main()`` function builds its own parser internally and takes no parameters, just run ``clizard`` in the repository root. Clizard AST-parses the ``add_argument()`` calls and extracts the settings automatically.
+
+
+How does clizard call my ``main()`` function?
+*********************************************
+
+Clizard uses one of two call styles, detected automatically:
+
+* **kwargs style** — when ``main()`` takes named keyword parameters (e.g., ``def main(input_path=None, verbose=False)``), clizard calls ``main(**settings)`` directly using the current values from ``.clizard/settings.json``.
+
+* **argv style** — when ``main()`` takes no parameters and builds its own ``argparse.ArgumentParser`` internally, clizard reconstructs ``sys.argv`` from the current settings and calls ``main()`` with no arguments, letting it parse the rebuilt command line as normal.
+
+The call style is embedded in any file generated by ``/scaffold`` or ``clizardmake``, so the standalone ``clizard_main.py`` behaves identically to the dynamic discovery path.
+
 
 How do I persist configuration changes?
 ***************************************
 
-Configuration persistence is handled by the :class:`Config` class.  Each instance represents a JSON file stored under the default configuration directory (typically ``$XDG_CONFIG_HOME/clizard/``).  The constructor accepts an ``app_name`` string that uniquely identifies the config file; this allows multiple applications to coexist without clashing.
-
-The ``set`` method writes a key/value pair immediately to the in‑memory dictionary and then flushes it to disk.  This is useful for one‑off changes such as toggling a flag or updating a path.  For batch updates, you can use ``update_from_args`` which merges a dictionary of CLI overrides into the current settings but does not automatically persist them.  After making multiple modifications, call ``config.save()`` to write all changes to disk in one operation.
-
-The following snippet demonstrates creating a configuration object, setting a value, and retrieving it:
+Settings are saved automatically. Every time you change a value through ``/settings set``, the ``/wizard``, or the :meth:`~clizard.config.Config.set` method in code, the updated dictionary is written to ``.clizard/settings.json`` immediately.
 
 .. code-block:: python
 
-   cfg = Config('myapp')
-   cfg.set('foo', 42)
-   print(cfg.get('foo'))
+   from clizard.config import Config
 
-When you run this code, the console will display ``42`` and the JSON file will contain an entry for ``"foo": 42``.
+   cfg = Config("my-tool", defaults={"threshold": 0.9, "verbose": False})
+   cfg.set("threshold", 0.75)
+   print(cfg.get("threshold"))   # 0.75
+   # .clizard/settings.json now contains {"threshold": 0.75, "verbose": false}
 
-What are the common command options?
-************************************
+To reset all settings to their defaults (both in memory and on disk):
 
-The ``build_parser`` function is responsible for assembling the top‑level argument parser that **clizard** presents to users.  It accepts a ``name`` parameter identifying the tool, as well as an optional ``extra_args`` list that allows callers to inject additional flags.
+.. code-block:: console
 
-Among the most frequently used options are:
+   ❯ /reset      # from inside the interactive shell
 
-* ``--model`` – selects the language model backend (e.g., “gpt‑3.5” or “llama”).  
-* ``--path`` – specifies a working directory for relative file references.  
-* ``--config`` – points to an external configuration file, overriding the default ``.clizard`` location.  
-* ``--name`` – assigns a unique identifier to the current session, useful when running multiple instances concurrently.
-
-Additional arguments can be added by passing dictionaries with ``flags`` and ``kwargs`` keys.  For example, to add a ``--verbose`` flag that stores a boolean value:
+Or in code:
 
 .. code-block:: python
 
-   p = build_parser('tool', extra=[{'flags':['--verbose'],'kwargs':{'action':'store_true'}}])
+   cfg.reset()
 
-This pattern keeps the parser flexible while maintaining a clean API for developers.
+.. note::
+
+   Settings are stored in the **project-local** ``.clizard/settings.json``, not in a
+   global user directory. Each repository keeps its own state. This means two
+   colleagues working on the same codebase can have different active settings.
+
 
 How do I add custom slash commands?
-***********************************
+************************************
 
-Custom slash commands are defined by decorating functions with ``@cli.command``.  The decorator registers the function under a specified command name and an optional description that appears in help output.  When the user types the command at the prompt, **clizard** passes the current prompt string as the sole argument to the function.
-
-The signature of the decorated function is intentionally simple: it receives only the prompt text, allowing developers to focus on implementing business logic rather than parsing arguments.  The decorator internally stores metadata such as the command name and description in the ``GenericCLI`` instance’s registry.
-
-A typical example:
+Use the ``@cli.command`` decorator. The first argument is the command name (must start with ``/``); the second is the help text shown by ``/help``. The decorated function receives the full prompt string (including the command name) as its only argument.
 
 .. code-block:: python
 
-   @cli.command('/hello','Greet user')
-   def greet(prompt):
-       print('Hello!')
+   from clizard import GenericCLI
 
-When the user types ``/hello`` at the prompt, the function executes and prints “Hello!”.  This pattern encourages rapid prototyping of interactive features without boilerplate.
+   cli = GenericCLI(app_name="My Tool", settings={"data_path": None})
 
-What if I want to run my script directly from the CLI?
-******************************************************
+   @cli.command("/validate", "Check that data_path exists and is readable")
+   def cmd_validate(prompt):
+       from pathlib import Path
+       path = cli.config.get("data_path")
+       if path and Path(path).exists():
+           cli.assistant_message(f"**{path}** is valid and readable.")
+       else:
+           cli.error(f"Path '{path}' not found. Use /settings set data_path <path>")
 
-The ``auto_cli`` helper also supports a special callback mechanism.  By providing a ``run_callback`` callable, **clizard** automatically registers a ``/run`` command that invokes this function with the current :class:`GenericCLI` instance as its argument.  This is particularly useful for scripts that perform a single action and traditionally exit after parsing arguments.
+   cli.run()
 
-The callback receives the CLI object, giving it full access to parsed settings, configuration values, and the ability to trigger further interactions if needed.  The following example shows how to expose a ``/run`` command that calls your original main function:
+Commands registered this way appear in ``/help`` output and can be invoked by name at the shell prompt.
+
+
+What are the built-in slash commands?
+**************************************
+
+All commands available in every *clizard* shell:
+
+.. list-table::
+   :widths: 20 70
+   :header-rows: 1
+
+   * - Command
+     - Description
+   * - ``/wizard``
+     - Step-by-step walkthrough of all settings, with type validation. Offers to ``/run`` on completion.
+   * - ``/run``
+     - Execute ``main()`` with the current settings. Only registered when an entry point was found.
+   * - ``/settings``
+     - View the current settings table. With ``set <key> <value>`` updates a single value. With ``reset`` clears all settings.
+   * - ``/reset``
+     - Delete ``.clizard/settings.json`` and restore in-memory defaults.
+   * - ``/install``
+     - Run ``pip install`` from ``pyproject.toml`` or ``requirements.txt``.
+   * - ``/docs``
+     - Open the project documentation in a browser (``docs_url`` from meta, or ``docs/index.html``).
+   * - ``/home``
+     - Clear the terminal and redisplay the welcome screen.
+   * - ``/clear``
+     - Clear the terminal.
+   * - ``/scaffold``
+     - Generate a standalone ``clizard_main.py`` with settings baked in. Only registered when an entry point was found.
+   * - ``/help``
+     - List all registered commands with their descriptions.
+   * - ``/exit`` or ``/quit``
+     - End the session.
+
+
+What if I want to run my script directly from the shell?
+********************************************************
+
+Use the ``run_callback`` parameter of :func:`auto_cli`. When supplied, clizard registers a ``/run`` command that calls your function with the current :class:`~clizard.GenericCLI` instance as its argument, giving it full access to settings:
 
 .. code-block:: python
 
-   cli = auto_cli(p, run_callback=lambda c: my_main(**c.settings))
+   import argparse
+   from clizard import auto_cli
 
-After running this script, you can type ``/run`` at the prompt and the original ``my_main`` function will execute with all current settings applied.
+   def my_main(input_path, verbose=False):
+       print(f"Processing {input_path}, verbose={verbose}")
+
+   parser = argparse.ArgumentParser()
+   parser.add_argument("--input-path", type=str)
+   parser.add_argument("--verbose", action="store_true", default=False)
+
+   cli = auto_cli(
+       parser,
+       run_callback=lambda c: my_main(
+           c.config.get("input_path"),
+           verbose=c.config.get("verbose"),
+       ),
+   )
+   cli.run()
+
+Alternatively, if your project already has a ``main()`` function that clizard auto-discovers, just run ``clizard`` in the repo root — the ``/run`` command is registered automatically.
+
 
 How does clizard handle Snakemake workflows?
 ********************************************
 
-Snakemake integration is achieved through the ``find_snakemake_config`` helper.  The function scans the repository for a ``Snakefile`` that contains a ``configfile: <path>`` directive.  When such a file is found, it parses the referenced YAML configuration and merges its contents into **clizard**’s internal settings dictionary.
+Clizard looks for a ``Snakefile`` at the repository root or in ``workflow/Snakefile``. When found, it checks for a ``configfile:`` directive and parses the referenced YAML. The YAML keys are loaded into the settings store with an ``sm_`` prefix to keep them visually separate from the project's own Python arguments.
 
-This merging process allows users to edit workflow parameters interactively via **clizard**, while still preserving the original Snakemake semantics.  For example, if your Snakefile expects a parameter ``samples: 100``, you can change this value at the prompt and then run the workflow without editing the YAML file manually.
+When ``/run`` is invoked, clizard writes the current ``sm_``-prefixed values back to the config YAML and then calls:
 
-A simple usage pattern:
+.. code-block:: console
+
+   snakemake --configfile <config_path> --cores all
+
+The output is captured and displayed in the terminal (truncated at 2,000 characters). To access the discovery logic directly:
 
 .. code-block:: python
 
-   config = find_snakemake_config('.')
-   print(config)
+   from clizard.discover import find_snakemake_config, settings_from_snakemake_config
 
-The printed output will show the merged configuration dictionary, making it easy to verify that **clizard** has correctly interpreted the Snakemake settings.
+   path = find_snakemake_config(".")
+   if path:
+       settings = settings_from_snakemake_config(path)
+       print(settings)
+       # {"sm_samples": "data/samples.tsv", "sm_threads": 8, ...}
+
+.. note::
+
+   Snakemake integration requires ``pyyaml`` to be installed
+   (``pip install pyyaml``). Clizard degrades gracefully if it is absent —
+   the Snakemake settings simply do not appear.
+
+
+Why is the generated file called ``clizard_main.py`` and not ``clizard.py``?
+*****************************************************************************
+
+A file named ``clizard.py`` at the repository root shadows the installed ``clizard`` package when Python resolves imports. Any statement like ``from clizard import GenericCLI`` inside that file would import itself rather than the package, raising an ``ImportError``. The ``_main`` suffix sidesteps this naming collision entirely.
+
+If you have an existing ``clizard.py`` in your project, rename it before running ``clizardmake``.
+
 
 Important notes
 ***************
 
-* clizard uses Rich for terminal styling; output may vary across terminals.  
-* All configuration files are JSON; manual edits are supported and will be respected on subsequent runs.
+* Clizard uses `rich <https://github.com/Textualize/rich>`_ for terminal styling; output appearance may vary across terminal emulators.
+* All configuration files are plain JSON and can be edited manually. Changes take effect on the next ``clizard`` startup.
+* The ``/scaffold`` command and ``clizardmake`` generate a ``clizard_main.py`` that bakes in settings and argument metadata. Re-run either command after adding or renaming arguments in your ``main()`` to keep the scaffold in sync.
 
 .. include:: add_bottom.add

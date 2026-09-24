@@ -8,7 +8,19 @@ clizard's documentation!
 *clizard* — Python library by erdogant.
 
 
-Clizard is a lightweight Python toolkit that automates the creation and management of command‑line interfaces (CLIs). It assumes most CLI applications share common options—verbosity, configuration file paths, help flags—and generates these automatically with minimal boilerplate around `argparse`. Developers can focus on business logic while still delivering a polished user experience. The library provides utilities to build parsers (`build_parser`), auto‑generate rich‑based chat CLIs (`auto_cli`, `GenericCLI`), load and merge configuration files (`load_clizard_file`, `ensure_clizard_file`), and expose settings via a JSON‑backed store (`Config`). It also supports decorator‑style command registration (`@command`) for slash commands, automatic type casting of CLI arguments, and helper functions to locate main modules or Snakemake config files. Clizard’s goal is to streamline CLI development, reduce repetitive code, and enable consistent, maintainable interfaces across Python projects.
+**clizard** is a lightweight Python toolkit that wraps any existing Python project in a rich, interactive terminal interface — with no changes to your existing code required.
+
+Point ``clizard`` at a repository root and it automatically discovers your project's ``main()`` function, extracts its arguments (from the function signature or an internal ``argparse`` parser), and launches a guided shell with settings persistence, a setup wizard, and one-click execution. Developers get a polished user experience; their colleagues get a tool they can actually run without reading the docs.
+
+Key capabilities:
+
+* **Auto-discovery** — finds ``main()`` by scanning for named entry files, argument-handling patterns, and ``__name__`` guards
+* **Argument extraction** — reads keyword parameters directly from the signature, or AST-parses internal ``ArgumentParser`` blocks
+* **Settings persistence** — saves and restores configuration between sessions via ``.clizard/settings.json``
+* **Interactive shell** — built-in slash commands: ``/wizard``, ``/run``, ``/settings``, ``/reset``, ``/install``, ``/docs``, ``/help``
+* **Scaffold generation** — ``/scaffold`` (or ``clizardmake``) bakes settings into a standalone ``clizard_main.py``
+* **Snakemake support** — detects ``Snakefile`` config directives and exposes workflow parameters as editable settings
+* **Customisable identity** — app name, ASCII art, accent colour, and tips menu via ``.clizard/meta.json``
 
 
 .. code-block:: console

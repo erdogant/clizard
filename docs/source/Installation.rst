@@ -4,7 +4,7 @@ Installation
 
 .. note::
 
-   Latest release: ``0.2.0``
+   Latest release: ``0.2.3``
 
 .. note::
 
@@ -46,10 +46,43 @@ Install from GitHub
    pip install git+https://github.com/erdogant/clizard.git@main
 
 
+Verify the installation
+***********************
+
+After installation two console entry points are available:
+
+.. code-block:: console
+
+   # Launch the interactive shell in the current directory
+   clizard
+
+   # Generate a standalone clizard_main.py for the current project
+   clizardmake
+
+You can confirm the installed version from Python:
+
+.. code-block:: python
+
+   import clizard
+   print(clizard.__version__)
+   # 0.2.3
+
+
+Dependencies
+************
+
+clizard depends on:
+
+* `rich <https://github.com/Textualize/rich>`_ — terminal styling, panels, spinners, tables
+* `tomllib` (Python 3.11+) or `tomli` — reading ``pyproject.toml`` metadata
+
+Optional dependencies used for Snakemake integration:
+
+* `pyyaml <https://pyyaml.org/>`_ — reading ``config.yaml`` workflow files
 
 
 Uninstall
-================
+=========
 
 Remove environment
 ******************

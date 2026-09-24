@@ -1,18 +1,44 @@
 Examples
 =========
 
-The following sections provide concrete usage patterns that illustrate how the :mod:`clizard` framework can be leveraged to build powerful command‑line interfaces for a variety of tasks.  Each example is self‑contained, demonstrates key design decisions, and includes runnable code snippets that show the full interaction flow from argument parsing to execution.
+The following sections show concrete usage patterns for *clizard*, from the simplest zero-configuration case to full custom shells. Each example is self-contained and includes runnable code.
 
-Release Tool CLI Example
-------------------------
 
-The release tool example showcases how to wrap an existing :mod:`argparse` parser with :func:`clizard.auto_cli`.  By delegating the heavy lifting of mapping command‑line arguments into a structured configuration object, developers can focus on the business logic of releasing artifacts while still providing a polished user experience.
+Zero-configuration: run clizard on any repo
+--------------------------------------------
 
-In this pattern, the ``auto_cli`` helper automatically extracts values from the parsed arguments and stores them in ``cli.config.settings``.  The ``run_callback`` function then pulls those settings out and forwards them to the underlying release routine.  This separation of concerns keeps the CLI layer thin and testable while preserving the flexibility of a traditional argparse interface.
+The simplest usage requires no code at all. Navigate to any Python project that has a ``main()`` function and run:
 
-Because the release workflow often involves side effects such as cleaning build directories, installing dependencies, or invoking external tools like Twine, the example demonstrates how optional integer flags can be converted into boolean semantics within the callback.  The verbosity level is also propagated to give users fine‑grained control over output noise.
+.. code-block:: console
 
-.. list-table:: Parameters of :func:`auto_cli`
+   cd /path/to/your/project
+   clizard
+
+Clizard discovers the entry point automatically, extracts its arguments, and launches the interactive shell. From there:
+
+.. code-block:: console
+
+   ❯ /wizard        # step through every argument interactively
+   ❯ /run           # execute main() with the current settings
+   ❯ /settings      # view or edit any value directly
+   ❯ /scaffold      # generate a standalone clizard_main.py
+
+To generate a standalone wrapper without launching the shell:
+
+.. code-block:: console
+
+   clizardmake
+   # clizard main file written to: /path/to/your/project/clizard_main.py
+
+
+Wrapping an existing argparse script with ``auto_cli``
+------------------------------------------------------
+
+The :func:`auto_cli` helper bridges the gap between a legacy ``argparse``-based ``main()`` and the *clizard* interactive shell. It reads argument definitions directly from the existing :class:`~argparse.ArgumentParser` instance and maps them to interactive settings, preserving types, defaults, choices, and help text.
+
+This example wraps a release tool that uploads Python packages to PyPI:
+
+.. list-table:: Parameters of the release tool
    :widths: 15 10 65
    :header-rows: 1
 
@@ -21,86 +47,70 @@ Because the release workflow often involves side effects such as cleaning build 
      - Description
    * - username
      - ``str``
-     - Username on Github/Gitlab used to identify the target repository.
+     - GitHub/GitLab username identifying the target repository.
    * - package
      - ``str``
-     - Package name or path that should be released.
+     - Package name or path to release.
    * - clean
-     - ``int | None``
-     - Flag to remove local build artifacts; ``0`` maps to ``False``, ``1`` to ``True``.
+     - ``int``
+     - Remove local build artifacts. ``0`` → False, ``1`` → True.
    * - install
-     - ``int | None``
-     - Flag to install the package locally before release; same integer mapping as ``clean``.
+     - ``int``
+     - Install the package locally before release. Same integer mapping as ``clean``.
    * - twine
-     - ``str | None``
-     - Custom path to a Twine executable if the default is unsuitable.
+     - ``str``
+     - Path to a custom Twine executable.
    * - verbosity
-     - ``int | None``
-     - Verbosity level controlling the amount of runtime information emitted.
+     - ``int``
+     - Runtime output level (0–5).
 
 .. code-block:: python
 
-    import argparse
-    from clizard import auto_cli
-    from release_tool import run  # The core release logic
+   import argparse
+   from clizard import auto_cli
+   from release_tool import run  # the core release logic
 
-    def main():
-        parser = argparse.ArgumentParser()
-        parser.add_argument("-u", "--username", type=str,
-                            help="Username on Github/Gitlab…")
-        parser.add_argument("-p", "--package", type=str,
-                            help="Package name to be released.")
-        parser.add_argument(
-            "-c",
-            "--clean",
-            type=int,
-            choices=[0, 1],
-            help="Remove local builds: [dist], [build] and [x.egg-info]."
-        )
-        parser.add_argument(
-            "-i",
-            "--install",
-            type=int,
-            choices=[0, 1],
-            help="Install this version on local machine."
-        )
-        parser.add_argument("-t", "--twine", type=str,
-                            help="Path to twine in case you have a custom build.")
-        parser.add_argument(
-            "-v",
-            "--verbosity",
-            type=int,
-            choices=[0, 1, 2, 3, 4, 5],
-            help="Verbosity level (higher number tends to more information)."
-        )
-        args = parser.parse_args()
+   def main():
+       parser = argparse.ArgumentParser()
+       parser.add_argument("-u", "--username", type=str,
+                           help="Username on Github/Gitlab.")
+       parser.add_argument("-p", "--package", type=str,
+                           help="Package name to be released.")
+       parser.add_argument("-c", "--clean", type=int, choices=[0, 1],
+                           help="Remove local builds: [dist], [build] and [x.egg-info].")
+       parser.add_argument("-i", "--install", type=int, choices=[0, 1],
+                           help="Install this version on local machine.")
+       parser.add_argument("-t", "--twine", type=str,
+                           help="Path to twine in case you have a custom build.")
+       parser.add_argument("-v", "--verbosity", type=int, choices=[0, 1, 2, 3, 4, 5],
+                           help="Verbosity level (higher number = more information).")
+       args = parser.parse_args()
 
-        def run_callback(cli):
-            s = cli.config.settings
-            run(
-                s["username"],
-                s["package"],
-                clean=s["clean"],
-                install=s["install"],
-                twine=s["twine"],
-                verbose=s["verbosity"]
-            )
+       def run_callback(cli):
+           s = cli.config.settings
+           run(
+               s["username"],
+               s["package"],
+               clean=bool(s["clean"]),
+               install=bool(s["install"]),
+               twine=s["twine"],
+               verbose=s["verbosity"],
+           )
 
-        cli = auto_cli(parser, args=args,
-                       app_name="ReleaseTool",
-                       run_callback=run_callback)
-        cli.run()
+       cli = auto_cli(parser, args=args,
+                      app_name="ReleaseTool",
+                      run_callback=run_callback)
+       cli.run()
 
-Summarizer CLI Wrapper
------------------------
+After running this script the user sees a ``rich``-styled welcome screen. Typing ``/wizard`` steps through each argument interactively; ``/run`` calls the release function with the current values.
 
-This example demonstrates how a simple text summarization function can be exposed through an interactive GenericCLI.  The wrapper adds slash commands and free‑text handling, allowing users to trigger summarization either via explicit `/run` commands or by simply typing the path of a document.
 
-The ``GenericCLI`` instance is configured with default settings derived from command‑line arguments.  The ``/run`` command reads those settings, validates that an input file exists, and then calls :func:`summarize`.  Free‑text prompts are interpreted as file paths, enabling quick one‑liner usage without needing to remember the exact syntax of a slash command.
+Building a custom shell with ``GenericCLI``
+-------------------------------------------
 
-By exposing both a structured command interface and a flexible free‑text handler, this pattern provides an intuitive user experience that scales from casual experimentation to scripted automation.
+When you want more control — custom commands, a specific welcome screen, or a free-text handler — use :class:`~clizard.GenericCLI` directly. This example wraps a text summarisation function:
 
-.. list-table:: Parameters of :func:`summarize`
+.. list-table:: Settings for the summariser shell
    :widths: 15 10 65
    :header-rows: 1
 
@@ -112,118 +122,162 @@ By exposing both a structured command interface and a flexible free‑text handl
      - Path to the input text file.
    * - max_words
      - ``int``
-     - Maximum number of whitespace‑delimited tokens to extract from the start of the document. Defaults to 50.
+     - Maximum number of tokens to extract. Defaults to ``50``.
    * - uppercase
      - ``bool``
-     - If True, all extracted tokens are converted to uppercase before joining.
+     - Convert extracted tokens to uppercase before joining.
 
 .. code-block:: python
 
-    def build_cli(args):
-        cli = GenericCLI(
-            app_name="Summarizer CLI",
-            settings={
-                "input_path": args.input_path,
-                "max_words": args.max_words,
-                "uppercase": args.uppercase,
-            },
-            tips=["/run", "/settings", "/docs", "/help"],
-        )
+   import argparse
+   from pathlib import Path
+   from clizard import GenericCLI
 
-        @cli.command("/run", "Run the summarizer with current settings")
-        def cmd_run(prompt):
-            path = cli.config.get("input_path")
-            if not path:
-                cli.error(
-                    "No input_path set. Use: /settings set input_path <file>"
-                )
-                return
-            cli.status(f"Summarizing {path}...")
-            result = summarize(
-                input_path=path,
-                max_words=cli.config.get("max_words"),
-                uppercase=cli.config.get("uppercase"),
-            )
-            cli.assistant_message(result)
+   def summarize(input_path, max_words=50, uppercase=False):
+       text = Path(input_path).read_text().split()[:max_words]
+       result = " ".join(text)
+       return result.upper() if uppercase else result
 
-        def handler(prompt, cli):
-            return summarize(
-                input_path=prompt,
-                max_words=cli.config.get("max_words"),
-                uppercase=cli.config.get("uppercase"),
-            )
+   def build_cli(args):
+       cli = GenericCLI(
+           app_name="Summarizer CLI",
+           settings={
+               "input_path": args.input_path,
+               "max_words":  args.max_words,
+               "uppercase":  args.uppercase,
+           },
+           tips=["/run", "/settings", "/docs", "/help"],
+       )
 
-        cli.handler = handler
-        return cli
+       @cli.command("/run", "Summarise the file at input_path")
+       def cmd_run(prompt):
+           path = cli.config.get("input_path")
+           if not path:
+               cli.error("No input_path set. Use: /settings set input_path <file>")
+               return
+           with cli.status(f"Summarising {path}..."):
+               result = summarize(
+                   input_path=path,
+                   max_words=cli.config.get("max_words"),
+                   uppercase=cli.config.get("uppercase"),
+               )
+           cli.assistant_message(result)
 
-LLMlight Custom CLI
---------------------
+       # Free-text handler: typing a path directly runs the summariser.
+       def handler(prompt, cli):
+           return summarize(
+               input_path=prompt,
+               max_words=cli.config.get("max_words"),
+               uppercase=cli.config.get("uppercase"),
+           )
 
-The LLMlight example illustrates how to extend :class:`clizard.GenericCLI` with custom commands, ASCII art, and a user‑defined handler that would normally interface with an LLM backend.  The design showcases project‑specific logic in the `/init` command while keeping the core CLI loop lightweight.
+       cli.handler = handler
+       return cli
 
-In this pattern, the ``GenericCLI`` is instantiated with a multi‑line ASCII banner that gives the tool a distinctive visual identity.  Settings such as model identifier, local path, and temperature are supplied via both command‑line arguments and an optional configuration file.  The handler function, ``my_handler``, acts as a placeholder for real LLM calls; in practice it would forward prompts to a language model API and return the generated response.
+   if __name__ == "__main__":
+       parser = argparse.ArgumentParser()
+       parser.add_argument("--input-path", type=str, default=None)
+       parser.add_argument("--max-words",  type=int, default=50)
+       parser.add_argument("--uppercase",  action="store_true", default=False)
+       build_cli(parser.parse_args()).run()
 
-The example also demonstrates how to update settings from parsed arguments after CLI construction, ensuring that defaults can be overridden at runtime without modifying the original configuration dictionary.
 
-.. list-table:: Parameters of :func:`my_handler`
-   :widths: 15 10 65
-   :header-rows: 1
+Custom ASCII art, tips, and a project-specific command
+------------------------------------------------------
 
-   * - Name
-     - Type
-     - Description
-   * - model
-     - ``str``
-     - Model identifier to be used for inference.
-   * - path
-     - ``str``
-     - Local filesystem path where the model resides.
-   * - temperature
-     - ``float``
-     - Sampling temperature controlling output randomness.
+This example shows how to give a project its own visual identity and add a domain-specific slash command. The pattern is used by tools like `LLMlight <https://github.com/erdogant/llmlight>`_ that wrap a local LLM backend:
 
 .. code-block:: python
 
-    def main():
-        args = parse_args(app_name="LLMlight", extra_args=EXTRA_ARGS)
+   from clizard import GenericCLI, parse_args
 
-        cli = GenericCLI(
-            app_name=args.name or "LLMlight",
-            ascii_art=r'''
+   EXTRA_ARGS = [
+       {"flags": ["--model"],       "kwargs": {"type": str,   "default": None}},
+       {"flags": ["--path"],        "kwargs": {"type": str,   "default": None}},
+       {"flags": ["--temperature"], "kwargs": {"type": float, "default": None}},
+   ]
+
+   def my_handler(prompt, cli):
+       # Replace with a real LLM call in your project.
+       model = cli.config.get("model")
+       return f"[{model}] Echo: {prompt}"
+
+   def main():
+       args = parse_args(app_name="LLMlight", extra_args=EXTRA_ARGS)
+
+       cli = GenericCLI(
+           app_name=args.name or "LLMlight",
+           ascii_art=r"""
     /\_/\
-    ( o.o )
+   ( o.o )
     > ^ <
-    '''
+   """,
+           settings={
+               "model":       "google/gemma-2-6b",
+               "path":        "C:/LLMlight",
+               "temperature": 0.7,
+           },
+           config_path=args.config,
+           handler=my_handler,
+           tips=["/init", "/run", "/settings", "/help"],
+           updates=[
+               "Agent system improvements",
+               "Documentation generation",
+               "Local model support",
+           ],
+       )
 
-    settings={
-                "model": "google/gemma-26B-a4B",
-                "path": "C:/LLMlight",
-                "temperature": 0.7,
-            },
-            config_path=args.config,
-            handler=my_handler,
-            tips=["/init", "/help", "generate documentation"],
-            updates=[
-                "Agent system improvements",
-                "Documentation generation",
-                "Local model support",
-            ],
-        )
-        cli.config.update_from_args(
-            {"model": args.model, "path": args.path, "temperature": args.temperature}
-        )
+       # Override defaults with any values supplied on the command line.
+       cli.config.update_from_args({
+           "model":       args.model,
+           "path":        args.path,
+           "temperature": args.temperature,
+       })
 
-        @cli.command("/init", "Initialize a new project")
-        def cmd_init(prompt):
-            cli.assistant_message(f"Initialized project at `{cli.config.get('path')}`")
+       @cli.command("/init", "Initialise a new project at the configured path")
+       def cmd_init(prompt):
+           path = cli.config.get("path")
+           cli.assistant_message(f"Initialised project at `{path}`")
 
-        cli.run()
+       cli.run()
 
-Important Notes
------------------
+   if __name__ == "__main__":
+       main()
 
-* All examples rely on the :class:`clizard.GenericCLI` base class from the *clizard* package; ensure it is installed and importable.
-* The ``auto_cli`` helper automatically maps argparse arguments to CLI settings, simplifying integration with legacy parsers.
-* Free‑text handlers allow users to type arbitrary prompts that are interpreted as input paths or commands, providing a natural interaction model for exploratory workflows.
+
+Snakemake workflow integration
+------------------------------
+
+If your repository contains a ``Snakefile`` with a ``configfile:`` directive, clizard detects the YAML automatically and exposes its keys as editable settings (prefixed ``sm_``). No code changes are needed — just run ``clizard`` in the repo root.
+
+For programmatic access to the same discovery logic:
+
+.. code-block:: python
+
+   from clizard.discover import find_snakemake_config, settings_from_snakemake_config
+
+   config_path = find_snakemake_config(".")
+   if config_path:
+       settings = settings_from_snakemake_config(config_path)
+       print(settings)
+       # {"sm_samples": "data/samples.tsv",
+       #  "sm_reference": "data/ref.fa",
+       #  "sm_threads": 8,
+       #  "sm_output_dir": "results/"}
+
+When ``/run`` is invoked in the shell, clizard writes the current ``sm_``-prefixed values back to the YAML and then calls:
+
+.. code-block:: console
+
+   snakemake --configfile config/config.yaml --cores all
+
+
+Important notes
+---------------
+
+* All examples require *clizard* to be installed (``pip install clizard``) and importable.
+* :func:`auto_cli` maps argparse arguments to interactive settings automatically; existing ``main()`` functions do not need to be modified.
+* Free-text handlers receive the raw prompt string and can return any string, which is rendered as Markdown in the assistant panel.
+* Settings are persisted to ``.clizard/settings.json`` after every change; delete this file or run ``/reset`` to restore defaults.
 
 .. include:: add_bottom.add
